@@ -1,0 +1,3430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FREE LOGISTICS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg:#ffffff; --bg2:#f6f6f4; --card:#ffffff; --card2:#f0efec; --tile:#ecebe7;
+    --text:#111111; --muted:#76766f; --border:#e7e6e2;
+    --red:#d92d20;
+  }
+  html, body { width:100%; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:'Jost',-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg); color:var(--text);
+    overflow-x:hidden; line-height:1.4;
+  }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb { background:#c9c8c3; border-radius:4px; }
+
+  #intro {
+    position:fixed; inset:0;
+    z-index:1000;
+    background:#000;
+    overflow:hidden;
+    transition:opacity .9s ease, visibility .9s ease;
+  }
+  #intro.hide {
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  #planet-canvas {
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    display:block;
+  }
+
+  #cityLabels {
+    position:absolute; inset:0;
+    pointer-events:none;
+    z-index:5;
+    overflow:hidden;
+  }
+  .city-tag {
+    position:absolute;
+    top:0; left:0;
+    transform:translate(-50%, -100%);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.8px;
+    color:#fff8ec;
+    text-shadow:
+      0 0 3px rgba(255,255,255,.9),
+      0 0 8px rgba(255,200,140,.7),
+      0 0 16px rgba(255,150,60,.4);
+    white-space:nowrap;
+    transition:opacity .25s ease;
+    will-change:transform, opacity;
+  }
+  .city-tag::after {
+    content:'';
+    position:absolute;
+    left:50%; top:100%;
+    width:1px; height:9px;
+    transform:translateX(-50%);
+    background:linear-gradient(to bottom, rgba(255,255,255,.95), rgba(255,190,110,0));
+  }
+
+  .loader {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:20px;
+    background:#000;
+    z-index:100;
+    transition:opacity .8s ease;
+  }
+  .loader.hide { opacity:0; pointer-events:none; }
+  .loader-spinner {
+    width:50px; height:50px;
+    border:3px solid rgba(255,255,255,.15);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loader-text {
+    font-size:13px;
+    color:#666;
+    letter-spacing:2px;
+    text-transform:uppercase;
+  }
+
+  .intro-logo {
+    position:absolute;
+    top:44px;
+    left:50px;
+    font-family:'Barlow Condensed','Jost',sans-serif;
+    font-size:32px;
+    font-weight:800;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    pointer-events:auto;
+    animation:fadeInDown 1.2s ease;
+    z-index:30;
+  }
+  .intro-logo span { color:inherit; }
+
+  .intro-center {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    width:100%;
+    max-width:760px;
+    padding:0 20px;
+    text-align:center;
+    pointer-events:auto;
+    animation:fadeInUp 1.2s ease;
+    z-index:25;
+  }
+
+  .intro-center h1 {
+    font-family:'Barlow Condensed','Jost',sans-serif;
+    font-size:clamp(44px, 7vw, 84px);
+    font-weight:800;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    margin-bottom:28px;
+    line-height:1;
+    text-shadow:0 4px 30px rgba(0,0,0,.95);
+    color:#fff;
+  }
+  .intro-center h1 span {
+    color:#fff;
+  }
+
+  .intro-search {
+    position:relative;
+    width:100%;
+    margin-bottom:28px;
+    pointer-events:auto;
+  }
+  .intro-search-icon {
+    position:absolute;
+    left:22px;
+    top:50%;
+    transform:translateY(-50%);
+    width:22px;
+    height:22px;
+    color:#aaa;
+    pointer-events:none;
+    transition:color .3s;
+    z-index:2;
+  }
+  .intro-search input {
+    width:100%;
+    background:rgba(20,20,25,.85);
+    backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border:1.5px solid rgba(255,255,255,.2);
+    border-radius:50px;
+    padding:20px 24px 20px 60px;
+    font-family:inherit;
+    font-size:17px;
+    color:#fff;
+    outline:none;
+    transition:all .3s;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,.5),
+      0 0 0 1px rgba(255,255,255,.1),
+      inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .intro-search input::placeholder {
+    color:#777;
+    font-weight:500;
+  }
+  .intro-search input:focus {
+    border-color:rgba(255,255,255,.6);
+    box-shadow:
+      0 20px 80px rgba(0,0,0,.5),
+      0 0 0 1px rgba(255,255,255,.3),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    background:rgba(20,25,20,.95);
+  }
+  .intro-search:focus-within .intro-search-icon {
+    color:#fff;
+  }
+
+  .city-select {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    max-height:180px;
+    overflow-y:auto;
+    padding:4px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.3) transparent;
+  }
+  .city-select::-webkit-scrollbar { width:4px; }
+  .city-select::-webkit-scrollbar-thumb { background:rgba(255,255,255,.3); border-radius:2px; }
+  .city-btn {
+    background:rgba(5,15,10,.7);
+    border:1px solid rgba(255,255,255,.35);
+    color:#fff;
+    padding:9px 18px;
+    border-radius:20px;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:all .25s;
+    backdrop-filter:blur(12px);
+    white-space:nowrap;
+  }
+  .city-btn:hover {
+    border-color:#fff;
+    color:#fff;
+  }
+
+
+  /* Планета временно скрыта: чёрный фон + табличка */
+  #planet-canvas, #cityLabels, .loader { display:none !important; }
+  #intro { background:#000; }
+  /* Фон временно недоступен */
+  .intro-note {
+    position:absolute; left:0; right:0; bottom:28px; z-index:3; pointer-events:none;
+    padding:0 20px; text-align:center;
+    font-size:13px; line-height:1.5; color:#8d8d8d;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity:0; transform:translateY(-20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  #main-site { opacity:0; transition:opacity .6s ease .2s; }
+  #main-site.show { opacity:1; }
+
+  /* ============ ВЕРХНЯЯ СТРОКА ============ */
+  .top-strip {
+    background:#111; color:#fff; padding:7px 0;
+    font-size:11px; font-weight:500; letter-spacing:.24em;
+    overflow:hidden; white-space:nowrap; width:100%; position:relative;
+  }
+  .top-strip span {
+    display:inline-block; padding-left:100%;
+    animation:marquee 25s linear infinite; will-change:transform;
+  }
+  @keyframes marquee {
+    0%   { transform:translateX(0); }
+    100% { transform:translateX(-100%); }
+  }
+
+  /* ============ ШАПКА ============ */
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+  }
+  .top-bar {
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:20px;
+    padding:16px 32px 14px; max-width:1700px; margin:0 auto;
+  }
+  .hb-left { display:flex; align-items:center; gap:24px; justify-self:start; }
+  .hb-link {
+    font-size:12px; font-weight:500; color:var(--muted);
+    text-decoration:none; transition:color .2s; white-space:nowrap;
+  }
+  .hb-link:hover { color:var(--text); }
+  .logo {
+    justify-self:center; cursor:pointer; white-space:nowrap; line-height:1;
+    font-family:'Barlow Condensed','Jost',sans-serif;
+    font-size:32px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .hb-right { display:flex; align-items:center; gap:12px; justify-self:end; }
+
+  .city-label {
+    display:inline-flex; align-items:center; gap:6px;
+    background:transparent; color:var(--text);
+    border:1px solid var(--border); padding:8px 16px; border-radius:20px;
+    font-family:inherit; font-size:12px; font-weight:500;
+    cursor:pointer; transition:border-color .2s; white-space:nowrap;
+  }
+  .city-label:hover { border-color:var(--text); color:var(--text); }
+
+  .search-box { position:relative; width:230px; flex:none; }
+  .search-box input {
+    width:100%; background:var(--bg2);
+    border:1px solid transparent; border-radius:20px;
+    padding:9px 16px 9px 40px;
+    font-family:inherit; font-size:12px; color:var(--text);
+    outline:none; transition:border-color .2s, background .2s;
+  }
+  .search-box input { padding-right:42px; }
+  .search-box input:focus { border-color:var(--text); background:#fff; }
+  .photo-btn {
+    position:absolute; right:5px; top:50%; transform:translateY(-50%);
+    width:28px; height:28px; border:0; border-radius:50%; background:transparent; color:var(--text);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .2s;
+  }
+  .photo-btn:hover { background:#e6e5e1; }
+  .photo-btn:focus-visible { outline:2px solid var(--text); outline-offset:1px; }
+  .photo-btn svg { width:17px; height:17px; }
+  .photo-bar {
+    display:flex; align-items:center; gap:14px; margin-bottom:16px; padding:12px 14px;
+    background:var(--bg2); border-radius:2px;
+  }
+  .photo-bar[hidden] { display:none; }
+  .pb-thumb { width:52px; height:52px; flex:none; object-fit:cover; background:var(--tile); }
+  .pb-text { flex:1; min-width:0; font-size:13px; line-height:1.4; }
+  .pb-text b { display:block; font-weight:600; }
+  .pb-text span { display:block; font-size:12px; color:var(--muted); }
+  .pb-reset {
+    flex:none; background:#fff; color:var(--text); border:1px solid var(--border); border-radius:20px;
+    padding:8px 16px; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:border-color .2s;
+  }
+  .pb-reset:hover { border-color:var(--text); }
+
+  .search-box input::placeholder { color:#8d8d88; }
+  .search-box::before {
+    content:''; position:absolute; left:14px; top:50%;
+    width:16px; height:16px; transform:translateY(-50%); pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+
+  .nav-actions { display:flex; align-items:center; gap:2px; }
+  .icon-btn {
+    background:none; border:none; color:var(--text); cursor:pointer;
+    padding:8px; border-radius:50%; position:relative;
+    display:flex; align-items:center; justify-content:center; transition:background .2s;
+  }
+  .icon-btn:hover { background:var(--bg2); }
+  .icon-btn svg { width:20px; height:20px; display:block; }
+  .badge {
+    position:absolute; top:1px; right:1px;
+    background:var(--text); color:#fff;
+    font-size:10px; font-weight:700;
+    min-width:16px; height:16px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; padding:0 4px;
+  }
+  .badge.zero { display:none; }
+
+  /* ============ МЕНЮ КАТЕГОРИЙ ============ */
+  .cats {
+    display:flex; justify-content:center; gap:36px; padding:0 32px;
+    border-top:1px solid var(--border);
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .cats::-webkit-scrollbar { display:none; }
+  .cat {
+    background:none; border:0; border-bottom:2px solid transparent;
+    padding:13px 0 11px; font-family:inherit;
+    font-size:13px; font-weight:500; letter-spacing:.02em; color:var(--text);
+    cursor:pointer; white-space:nowrap; transition:border-color .2s;
+  }
+  .cat:hover { border-bottom-color:#c8c7c2; }
+  .cat.active { border-bottom-color:var(--text); }
+
+  /* ============ ГЛАВНЫЙ СЛАЙДЕР ============ */
+  .hero { max-width:1700px; margin:24px auto 0; padding:0 32px; }
+  .hero-slider {
+    position:relative; overflow:hidden;
+    background:var(--tile);
+    height:clamp(400px,40vw,620px); touch-action:pan-y; user-select:none;
+  }
+  .hs-slide { cursor:pointer;
+    position:absolute; inset:0; background:var(--tile); isolation:isolate;
+    opacity:0; transition:opacity .8s ease; pointer-events:none;
+  }
+  .hs-slide.active { opacity:1; pointer-events:auto; }
+  .hs-slide img {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain; mix-blend-mode:multiply;
+    /* мягкое растворение краёв фото в фон слайда;
+       --ox/--oy — отступ до края фото, --fx/--fy — ширина затухания (задаются из JS) */
+    --ox:0px; --oy:0px; --fx:0px; --fy:0px;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent var(--ox), #000 calc(var(--ox) + var(--fx)), #000 calc(100% - var(--ox) - var(--fx)), transparent calc(100% - var(--ox))),
+      linear-gradient(to bottom, transparent var(--oy), #000 calc(var(--oy) + var(--fy)), #000 calc(100% - var(--oy) - var(--fy)), transparent calc(100% - var(--oy)));
+    -webkit-mask-composite: source-in;
+            mask-image:
+      linear-gradient(to right, transparent var(--ox), #000 calc(var(--ox) + var(--fx)), #000 calc(100% - var(--ox) - var(--fx)), transparent calc(100% - var(--ox))),
+      linear-gradient(to bottom, transparent var(--oy), #000 calc(var(--oy) + var(--fy)), #000 calc(100% - var(--oy) - var(--fy)), transparent calc(100% - var(--oy)));
+            mask-composite: intersect;
+  }
+  .hs-slide::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(to top, rgba(0,0,0,.6) 0%, rgba(0,0,0,.3) 28%, rgba(0,0,0,0) 55%);
+  }
+  .hs-caption {
+    position:absolute; z-index:3; color:#fff; max-width:560px;
+    left:clamp(20px,5vw,60px); bottom:clamp(54px,6vw,80px);
+  }
+  .hs-title {
+    font-size:clamp(20px,2.3vw,32px); font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase; line-height:1.15;
+  }
+  .hs-sub { font-size:clamp(12px,1vw,14px); margin-top:12px; }
+  .hs-dots {
+    position:absolute; z-index:4; display:flex; gap:6px;
+    left:clamp(20px,5vw,60px); bottom:clamp(18px,2.6vw,30px);
+  }
+  .hs-dot {
+    position:relative; width:40px; height:14px;
+    background:none; border:none; padding:0; cursor:pointer;
+  }
+  .hs-dot::before, .hs-dot::after {
+    content:''; position:absolute; left:0; top:6px; height:2px;
+  }
+  .hs-dot::before { width:100%; background:rgba(255,255,255,.4); }
+  .hs-dot::after { width:0; background:#fff; }
+  .hs-dot.active::after { animation:hsfill 5s linear forwards; }
+  .hero-slider:hover .hs-dot.active::after { animation-play-state:paused; }
+  @keyframes hsfill { from { width:0; } to { width:100%; } }
+
+  /* ============ КАТАЛОГ: ФИЛЬТРЫ + ТОВАРЫ ============ */
+  .catalog {
+    max-width:1700px; margin:0 auto; padding:32px 32px 100px;
+    display:grid; grid-template-columns:250px minmax(0,1fr); gap:44px;
+    align-items:start; scroll-margin-top:134px;
+  }
+
+  .sidebar {
+    position:sticky; top:142px; max-height:calc(100vh - 160px);
+    overflow-y:auto; padding-right:6px; scrollbar-width:thin;
+  }
+  .sb-head, .sb-apply { display:none; }
+
+  .fg { border-bottom:1px solid var(--border); }
+  .fg summary {
+    list-style:none; display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0; cursor:pointer; user-select:none;
+    font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  }
+  .fg summary::-webkit-details-marker { display:none; }
+  .fg summary::after {
+    content:''; width:7px; height:7px; flex:none; margin-right:3px;
+    border-right:1.5px solid var(--text); border-bottom:1.5px solid var(--text);
+    transform:rotate(45deg) translateY(-2px); transition:transform .2s;
+  }
+  .fg[open] summary::after { transform:rotate(-135deg) translate(-2px,-2px); }
+  .fg-n { margin-left:6px; color:var(--muted); font-weight:500; letter-spacing:0; }
+  .fg-body { padding:2px 0 20px; }
+  .fg-list { max-height:280px; overflow-y:auto; display:flex; flex-direction:column; scrollbar-width:thin; }
+
+  .chk { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; cursor:pointer; }
+  .chk input {
+    -webkit-appearance:none; appearance:none; flex:none;
+    width:16px; height:16px; margin:0; display:grid; place-content:center;
+    border:1.5px solid #b9b8b2; border-radius:2px; cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .chk input:checked { background:var(--text); border-color:var(--text); }
+  .chk input:checked::after {
+    content:''; width:8px; height:4px;
+    border-left:1.5px solid #fff; border-bottom:1.5px solid #fff;
+    transform:rotate(-45deg) translate(1px,-1px);
+  }
+  .chk input:focus-visible, .chip:focus-visible { outline:2px solid var(--text); outline-offset:2px; }
+  .chk em { margin-left:auto; font-style:normal; font-size:12px; color:var(--muted); }
+
+  .chips { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .chip {
+    background:#fff; color:var(--text); border:1px solid var(--border); border-radius:2px;
+    padding:9px 0; font-family:inherit; font-size:12.5px; font-weight:500; text-align:center;
+    cursor:pointer; transition:border-color .15s, background .15s, color .15s;
+  }
+  .chip:hover { border-color:var(--text); }
+  .chip.on { background:var(--text); border-color:var(--text); color:#fff; }
+
+  .price-f { display:flex; align-items:center; gap:8px; }
+  .price-f span { color:var(--muted); }
+  .price-f input {
+    width:100%; min-width:0; background:#fff; color:var(--text);
+    border:1px solid var(--border); border-radius:2px; padding:10px;
+    font-family:inherit; font-size:13px; outline:none; transition:border-color .2s;
+  }
+  .price-f input:focus { border-color:var(--text); }
+  .price-f input::placeholder { color:#a2a29c; }
+
+  .sb-reset {
+    margin-top:18px; background:none; border:0; padding:0; cursor:pointer;
+    font-family:inherit; font-size:12.5px; font-weight:500; color:var(--text);
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  .sb-reset[hidden] { display:none; }
+
+  .toolbar { display:flex; align-items:center; gap:16px; margin-bottom:22px; min-height:22px; }
+  .toolbar h2 { font-size:13px; font-weight:600; margin:0; }
+  .toolbar h2 small { margin-left:6px; font-size:13px; font-weight:500; color:var(--muted); }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:28px; }
+  .tb-select { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .tb-select select {
+    -webkit-appearance:none; appearance:none; border:0; outline:none; cursor:pointer;
+    background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right center/10px;
+    padding:4px 18px 4px 0; font-family:inherit; font-size:12px; font-weight:600; color:var(--text);
+  }
+  .tb-filters {
+    display:none; align-items:center; gap:6px;
+    background:#fff; color:var(--text); border:1px solid var(--border); border-radius:20px;
+    padding:8px 16px; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer;
+  }
+
+  .grid {
+    --cols:4;
+    display:grid; grid-template-columns:repeat(var(--cols),minmax(0,1fr));
+    column-gap:14px; row-gap:34px;
+  }
+  .grid.v3 { --cols:3; }
+  .grid.v2 { --cols:2; }
+
+  .product { cursor:pointer; position:relative; }
+  .product-img { aspect-ratio:1; background:var(--tile); position:relative; overflow:hidden; }
+  .product-img img {
+    width:100%; height:100%; object-fit:cover; display:block;
+    mix-blend-mode:multiply; transition:transform .6s cubic-bezier(.4,0,.2,1);
+  }
+  .product:hover .product-img img { transform:scale(1.05); }
+
+  .fav-btn {
+    position:absolute; top:8px; right:8px; width:34px; height:34px;
+    background:transparent; border:0; cursor:pointer; z-index:3;
+    display:flex; align-items:center; justify-content:center;
+    color:#6d6d68; opacity:.55; transition:opacity .2s, transform .2s, color .2s;
+  }
+  .product:hover .fav-btn, .fav-btn.active { opacity:1; }
+  .fav-btn:hover { transform:scale(1.12); color:var(--text); }
+  .fav-btn.active { color:var(--text); }
+  .fav-btn svg { width:18px; height:18px; }
+
+  .product-info { display:flex; flex-direction:column; padding:12px 2px 0; }
+  .name {
+    order:1; font-size:12.5px; font-weight:500; line-height:1.4; min-height:35px; margin-bottom:3px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .meta-row { order:2; margin-bottom:5px; font-size:12px; color:var(--muted); }
+  .delivery { font-size:12px; color:var(--muted); }
+  .price-row { order:3; }
+  .price { font-size:13px; font-weight:600; }
+
+  .empty-state { grid-column:1/-1; text-align:center; padding:100px 20px; color:var(--muted); }
+  .empty-state h3 { color:var(--text); font-size:20px; margin-bottom:8px; font-weight:600; }
+
+  .sb-overlay {
+    position:fixed; inset:0; z-index:310; background:rgba(17,17,17,.5);
+    opacity:0; pointer-events:none; transition:opacity .3s;
+  }
+  .sb-overlay.show { opacity:1; pointer-events:auto; }
+
+  /* ============ ОКНО ТОВАРА ============ */
+  .overlay {
+    position:fixed; inset:0; background:rgba(17,17,17,.55);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:none;
+    align-items:center; justify-content:center;
+    z-index:200; padding:20px; overflow-y:auto;
+  }
+  .overlay.show { display:flex; }
+  .modal {
+    background:#fff; border-radius:4px; max-width:1100px; width:100%;
+    max-height:92vh; overflow-y:auto; position:relative; animation:pop .3s;
+  }
+  @keyframes pop { from{transform:scale(.96);opacity:0} to{transform:scale(1);opacity:1} }
+  .close-btn {
+    position:absolute; top:16px; right:16px;
+    background:#fff; border:1px solid var(--border); color:var(--text);
+    width:40px; height:40px; border-radius:50%;
+    font-size:22px; line-height:1; cursor:pointer; z-index:5; transition:background .2s;
+  }
+  .close-btn:hover { background:var(--bg2); }
+
+  .modal-body { display:grid; grid-template-columns:1.3fr 1fr; gap:0; align-items:stretch; }
+  .gallery {
+    padding:20px 24px 0 20px; display:flex; flex-direction:column; gap:12px;
+  }
+  .gallery-main {
+    flex:1 1 auto; min-height:360px; background:var(--tile);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .gallery-main img { width:100%; height:100%; object-fit:cover; display:block; mix-blend-mode:multiply; }
+  .gallery-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    background:rgba(17,17,17,.7); color:#fff;
+    border:1px solid rgba(255,255,255,.15);
+    width:44px; height:44px; border-radius:50%;
+    font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s, transform .2s;
+    z-index:2; backdrop-filter:blur(10px);
+  }
+  .gallery-nav:hover { background:rgba(17,17,17,.9); transform:translateY(-50%) scale(1.08); }
+  .gallery-nav.prev { left:12px; }
+  .gallery-nav.next { right:12px; }
+  .gallery-counter {
+    position:absolute; top:14px; left:14px;
+    background:rgba(17,17,17,.7); color:#fff;
+    padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600;
+    backdrop-filter:blur(10px); z-index:2;
+  }
+  .gallery-thumbs { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .thumb {
+    aspect-ratio:1; overflow:hidden; cursor:pointer;
+    border:1.5px solid transparent; background:var(--tile); transition:border-color .2s;
+  }
+  .thumb img { width:100%; height:100%; object-fit:cover; display:block; mix-blend-mode:multiply; }
+  .thumb.active { border-color:var(--text); }
+  .thumb:hover:not(.active) { border-color:#b9b8b2; }
+
+  .modal-content { padding:20px 45px 0 35px; display:flex; flex-direction:column; }
+  .modal-content > .dlv { margin-top:auto; }
+  .modal-content > .modal-actions { margin-bottom:22px; }
+  .modal-brand {
+    font-size:12px; color:var(--muted); font-weight:600;
+    text-transform:uppercase; letter-spacing:.14em; margin-bottom:10px;
+  }
+  .modal-title { font-size:26px; font-weight:600; letter-spacing:-.3px; line-height:1.2; margin-bottom:18px; }
+  .modal-price-row {
+    display:flex; align-items:baseline; gap:12px;
+    margin-bottom:8px; padding-bottom:4px;
+  }
+  .modal-price { font-size:30px; font-weight:600; letter-spacing:-.5px; color:var(--text); }
+  .section-label {
+    font-size:11px; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.14em; margin:22px 0 12px;
+  }
+  .sizes { display:grid; grid-template-columns:repeat(auto-fill, minmax(62px, 1fr)); gap:8px; margin-bottom:8px; }
+  .size {
+    background:#fff; border:1px solid var(--border); color:var(--text);
+    padding:12px 6px; border-radius:2px;
+    font-family:inherit; font-size:13px; font-weight:500; cursor:pointer;
+    transition:all .15s; text-align:center;
+  }
+  .size:hover:not(.disabled) { border-color:var(--text); }
+  .size.active { background:var(--text); color:#fff; border-color:var(--text); }
+  .size.disabled { opacity:.3; cursor:not-allowed; text-decoration:line-through; }
+
+  .specs { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .spec { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#55554f; line-height:1.5; }
+  .spec::before {
+    content:''; flex-shrink:0; width:5px; height:5px; border-radius:50%;
+    background:var(--text); margin-top:7px;
+  }
+
+  .modal-actions { display:flex; gap:10px; margin-top:26px; }
+  .add-btn {
+    flex:1; background:var(--text); color:#fff; border:none; padding:16px; border-radius:2px;
+    font-family:inherit; font-size:14px; font-weight:600; letter-spacing:.04em;
+    cursor:pointer; transition:background .2s;
+  }
+  .add-btn:hover:not(:disabled) { background:#2e2e2e; }
+  .add-btn:disabled { background:#e4e3df; color:#9a9a94; cursor:not-allowed; }
+  .secondary-btn {
+    background:#fff; color:#6d6d68; border:1px solid var(--border);
+    padding:16px 20px; border-radius:2px; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .secondary-btn:hover { border-color:var(--text); }
+  .secondary-btn.active { border-color:var(--text); background:var(--bg2); color:var(--text); }
+  .secondary-btn svg { width:20px; height:20px; }
+
+  .poizon-link {
+    display:inline-flex; align-items:center; gap:6px; margin-top:16px;
+    color:var(--text); font-size:13px; font-weight:600;
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  .poizon-link:hover { opacity:.6; }
+
+  .modal-footer-info {
+    margin-top:24px; padding-top:20px; border-top:1px solid var(--border);
+    display:flex; flex-direction:column; gap:10px; font-size:12px; color:var(--muted);
+  }
+  .modal-footer-info div { display:flex; align-items:center; gap:8px; }
+  .modal-footer-info .dot { width:5px; height:5px; border-radius:50%; background:var(--text); flex-shrink:0; }
+
+  /* ============ СТРАНИЦА ТОВАРА (вкладка) ============ */
+  .pdp { display:none; }
+  #main-site.pdp-mode .hero, #main-site.pdp-mode .catalog { display:none; }
+  #main-site.pdp-mode .pdp { display:block; }
+  .pdp-inner { max-width:1280px; margin:0 auto; padding:32px 20px 70px; }
+  .pdp-back {
+    display:inline-flex; align-items:center; gap:8px; margin-bottom:16px; padding:0;
+    background:none; border:0; cursor:pointer; font-family:inherit;
+    font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+  }
+  .pdp-back:hover { color:var(--text); }
+  a.product { display:block; color:inherit; text-decoration:none; }
+
+  .size-head { display:flex; justify-content:space-between; align-items:baseline; margin:22px 0 12px; }
+  .size-title { font-size:15px; font-weight:700; }
+  .size-title i { font-style:normal; font-weight:500; color:var(--muted); }
+  .size-guide {
+    display:inline-flex; align-items:center; gap:4px; background:none; border:0; cursor:pointer;
+    font-family:inherit; font-size:12px; color:var(--muted);
+  }
+  .size-guide:hover { color:var(--text); }
+  .size-grid {
+    display:grid; grid-template-columns:repeat(var(--c,4), minmax(0,1fr));
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  .szc {
+    position:relative; background:#fff; border:0; padding:11px 6px 10px; cursor:pointer;
+    font-family:inherit; text-align:center; color:var(--text); transition:background .15s;
+  }
+  .szc-n { display:block; font-size:14px; line-height:1.25; }
+  .szc-n b { font-weight:700; }
+  .szc-n i { font-style:normal; font-weight:500; color:#9a9a94; }
+  .szc-p { display:block; margin-top:2px; font-size:12px; color:var(--muted); }
+  .szc:hover:not(.disabled) { background:var(--bg2); }
+  .szc.active { box-shadow:inset 0 0 0 1px var(--text); z-index:1; }
+  .szc.disabled { cursor:not-allowed; }
+  .szc.disabled .szc-n b, .szc.disabled .szc-n i, .szc.disabled .szc-p { color:#c4c3be; }
+  .szc-fill { background:#fff; }
+  .guide-box { margin-top:10px; padding:14px 16px; background:var(--bg2); font-size:12px; color:#55554f; line-height:1.5; }
+  .guide-scroll { overflow-x:auto; margin-top:8px; }
+  .guide-box table { border-collapse:collapse; }
+  .guide-box th, .guide-box td { padding:5px 10px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; }
+  .guide-box th { text-align:left; color:var(--muted); font-weight:600; }
+
+  .dlv { margin-top:auto; padding:14px 16px 4px; background:#f7f7f5; font-size:13px; }
+  .dlv-head { display:flex; align-items:center; gap:10px; }
+  .dlv-head svg { width:22px; height:22px; flex-shrink:0; }
+  .dlv-head u { cursor:pointer; text-underline-offset:3px; }
+  .dlv .chev { width:16px; height:16px; margin-left:auto; color:#b5b4ae; }
+  .dlv-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+  .dlv-card { background:#efefec; padding:10px 14px; color:var(--muted); line-height:1.45; }
+  .dlv-card span { display:block; }
+  .dlv-guar { display:flex; align-items:center; gap:10px; padding:10px 0 12px; }
+  .dlv-guar > svg { width:22px; height:22px; flex-shrink:0; }
+  .dlv-guar-text { display:flex; flex-wrap:wrap; align-items:center; row-gap:2px; }
+  .dlv-guar-text span { margin-right:10px; padding-right:10px; border-right:1px solid #cfcec9; }
+  .dlv-guar-text span:last-child { margin:0; padding:0; border:0; }
+  .dlv-line { border-top:1px solid #e6e5e0; }
+
+  .reco { margin-top:32px; }
+  .reco h3 { font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:16px; }
+  .reco-row { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:26px 14px; }
+  .reco-row .product-img { background:#fff; }
+  .reco-row .product-info .price { font-size:17px; font-weight:700; }
+  @media (max-width:900px) {
+    .reco-row { grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px 10px; }
+    .pdp-inner { padding:24px 16px 60px; }
+  }
+  @media (max-width:520px) {
+    .dlv-cards { grid-template-columns:1fr; }
+    .szc { padding:10px 2px 9px; }
+    .szc-n { font-size:13px; white-space:nowrap; }
+  }
+
+  /* ============ КОРЗИНА ============ */
+  .cart-panel {
+    position:fixed; top:0; right:0; width:440px; max-width:100%; height:100vh;
+    background:#fff; border-left:1px solid var(--border);
+    z-index:300; transform:translateX(100%);
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column;
+  }
+  .cart-panel.show { transform:translateX(0); }
+  .cart-head {
+    padding:24px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .cart-head h3 { font-size:18px; font-weight:600; }
+  .cart-head .count { color:var(--muted); font-size:14px; font-weight:500; margin-left:8px; }
+  .cart-items { flex:1; overflow-y:auto; padding:16px 24px; }
+  .cart-empty { text-align:center; padding:80px 20px; color:var(--muted); }
+  .cart-empty h3 { color:var(--text); font-size:18px; margin-bottom:8px; font-weight:600; }
+  .cart-item { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .cart-item-img { width:72px; height:72px; background:var(--tile); overflow:hidden; flex-shrink:0; }
+  .cart-item-img img { width:100%; height:100%; object-fit:cover; mix-blend-mode:multiply; }
+  .cart-item-info { flex:1; min-width:0; }
+  .cart-item-info h4 { font-size:13px; font-weight:600; margin-bottom:3px; line-height:1.3; }
+  .cart-item-info .sz { font-size:11px; color:var(--muted); margin-bottom:8px; }
+  .cart-item-info .p { font-size:15px; font-weight:600; color:var(--text); }
+  .qty-controls { display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .qty-controls button {
+    width:28px; height:28px; border-radius:2px;
+    border:1px solid var(--border); background:#fff; color:var(--text);
+    cursor:pointer; font-weight:600; font-size:15px; transition:border-color .15s;
+  }
+  .qty-controls button:hover { border-color:var(--text); }
+  .qty-controls span { font-size:14px; font-weight:600; min-width:20px; text-align:center; }
+  .remove-btn {
+    background:none; border:none; color:var(--muted);
+    cursor:pointer; font-size:20px; align-self:flex-start; padding:4px; transition:color .2s;
+  }
+  .remove-btn:hover { color:var(--red); }
+
+  .cart-foot { padding:24px; border-top:1px solid var(--border); background:var(--bg2); }
+  .cart-summary { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+  .summary-row { display:flex; justify-content:space-between; font-size:14px; color:var(--muted); }
+  .summary-row.total {
+    font-size:20px; font-weight:600; color:var(--text);
+    padding-top:12px; border-top:1px solid var(--border); margin-top:4px;
+  }
+  .checkout-btn {
+    width:100%; background:var(--text); color:#fff; border:none; padding:16px; border-radius:2px;
+    font-family:inherit; font-size:14px; font-weight:600; letter-spacing:.04em;
+    cursor:pointer; transition:background .2s;
+  }
+  .checkout-btn:hover:not(:disabled) { background:#2e2e2e; }
+  .checkout-btn:disabled { background:#e4e3df; color:#9a9a94; cursor:not-allowed; }
+
+  .agree-row {
+    display:flex; align-items:flex-start; gap:8px; margin-bottom:14px;
+    font-size:12px; color:var(--muted); cursor:pointer; line-height:1.4;
+  }
+  .agree-row input { margin-top:3px; accent-color:#111; flex-shrink:0; width:14px; height:14px; cursor:pointer; }
+  .agree-row a { color:var(--text); text-decoration:underline; text-underline-offset:2px; }
+
+  /* ============ ФОРМА ЗАКАЗА ============ */
+  .order-modal { max-width:640px; }
+  .order-body { padding:36px 40px 32px; }
+  .order-title { font-size:24px; font-weight:600; letter-spacing:-.3px; margin-bottom:6px; }
+  .order-sub { font-size:13px; color:var(--muted); margin-bottom:26px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-field { display:flex; flex-direction:column; gap:6px; }
+  .form-field.full { grid-column:1 / -1; }
+  .form-field label {
+    font-size:11px; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.12em;
+  }
+  .form-field label .req { color:var(--text); }
+  .form-field input {
+    background:#fff; border:1px solid var(--border); border-radius:2px;
+    padding:12px 14px; font-size:14px; color:var(--text);
+    outline:none; transition:border-color .2s; font-family:inherit;
+  }
+  .form-field input:focus { border-color:var(--text); }
+  .form-field input::placeholder { color:#a2a29c; }
+  .form-field input.error { border-color:var(--red); }
+  .order-actions { display:flex; gap:10px; margin-top:22px; }
+  .order-submit {
+    flex:1; background:var(--text); color:#fff; border:none; padding:16px; border-radius:2px;
+    font-family:inherit; font-size:14px; font-weight:600; letter-spacing:.04em;
+    cursor:pointer; transition:background .2s;
+  }
+  .order-submit:hover { background:#2e2e2e; }
+  .order-cancel {
+    background:#fff; color:var(--text); border:1px solid var(--border);
+    padding:16px 22px; border-radius:2px;
+    font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; transition:border-color .2s;
+  }
+  .order-cancel:hover { border-color:var(--text); }
+  .order-note { font-size:11px; color:var(--muted); margin-top:16px; line-height:1.5; text-align:center; }
+  .order-note a { color:var(--text); text-decoration:underline; text-underline-offset:2px; }
+
+  /* ============ FRIENDS & FAMILY ============ */
+  .ff-tab {
+    position:fixed; right:0; top:50%; transform:translateY(-50%);
+    z-index:150; display:none;
+    writing-mode:vertical-rl; text-orientation:mixed;
+    padding:18px 11px; background:#fff; color:var(--text);
+    border:1px solid var(--border); border-right:none; border-radius:4px 0 0 4px;
+    font-family:inherit; font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    cursor:pointer; transition:background .2s, color .2s, padding .2s;
+    box-shadow:-6px 0 24px rgba(0,0,0,.1);
+  }
+  .ff-tab.show { display:block; }
+  .ff-tab:hover { background:var(--text); color:#fff; padding-right:16px; }
+  .ff-overlay {
+    position:fixed; inset:0; background:rgba(17,17,17,.5);
+    backdrop-filter:blur(4px); z-index:290;
+    opacity:0; pointer-events:none; transition:opacity .3s;
+  }
+  .ff-overlay.show { opacity:1; pointer-events:auto; }
+  .ff-panel {
+    position:fixed; top:0; right:0; width:min(820px,100%); height:100vh;
+    background:#fff; border-left:1px solid var(--border);
+    z-index:300; transform:translateX(100%);
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column;
+  }
+  .ff-panel.show { transform:translateX(0); }
+  .ff-head {
+    padding:24px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .ff-head h3 { font-size:20px; font-weight:600; }
+  .ff-head p { font-size:12px; color:var(--muted); margin-top:4px; }
+  .ff-tabs { display:flex; gap:8px; padding:14px 24px; border-bottom:1px solid var(--border); overflow-x:auto; flex-shrink:0; }
+  .ff-tabs button {
+    flex-shrink:0; background:var(--bg2); color:#55554f;
+    border:1px solid var(--border); border-radius:999px;
+    padding:6px 18px 6px 6px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:10px;
+    transition:background .2s,color .2s,border-color .2s; white-space:nowrap;
+  }
+  .ff-ava {
+    position:relative; width:34px; height:34px; border-radius:50%; overflow:hidden; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#e7e6e2; color:#111; font-size:12px; font-weight:800;
+  }
+  .ff-ava img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .ff-tabs button:hover { border-color:var(--text); color:var(--text); }
+  .ff-tabs button.active { background:var(--text); color:#fff; border-color:var(--text); }
+  .ff-list { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:44px; }
+  .ff-section { display:flex; flex-direction:column; gap:16px; }
+
+  .ff-cover {
+    position:relative; min-height:300px; border-radius:4px; overflow:hidden;
+    display:flex; align-items:flex-end; isolation:isolate;
+    background:linear-gradient(135deg,#1c1c1c,#2e2e2e); border:1px solid var(--border);
+  }
+  .ff-cover > img, .ff-poster > img {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; z-index:-2; transition:transform .6s;
+  }
+  .ff-cover:hover > img, .ff-poster:hover > img { transform:scale(1.04); }
+  .ff-cover::after, .ff-poster::after {
+    content:''; position:absolute; inset:0; z-index:-1;
+    background:linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.45) 45%, rgba(0,0,0,.05) 100%);
+  }
+  .ff-cover-body { padding:28px; width:100%; color:#fff; }
+  .ff-tag { font-size:13px; color:#fff; font-weight:600; letter-spacing:.4px; margin-bottom:8px; }
+  .ff-name { font-size:38px; font-weight:700; line-height:1.05; letter-spacing:-.5px; }
+  .ff-desc { font-size:15px; color:#dcdcdc; line-height:1.5; margin-top:12px; max-width:520px; }
+  .ff-link {
+    display:inline-block; margin-top:18px;
+    background:var(--text); color:#fff; text-decoration:none;
+    font-weight:600; font-size:14px; padding:12px 24px; border-radius:2px; transition:background .2s;
+  }
+  .ff-link:hover { background:#2e2e2e; }
+  .ff-badge { font-size:10px; color:rgba(255,255,255,.55); text-transform:uppercase; letter-spacing:1px; margin-top:16px; }
+
+  .ff-info { padding:4px 4px 0; }
+  .ff-info .ff-name { font-size:30px; }
+  .ff-info .ff-tag { color:var(--text); opacity:.8; }
+  .ff-info .ff-desc { max-width:none; color:var(--text); }
+  .ff-info .ff-badge { color:var(--muted); }
+
+  .ff-afisha-title { font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  .ff-poster {
+    position:relative; min-height:340px; border-radius:4px; overflow:hidden;
+    display:flex; align-items:flex-end; isolation:isolate; color:#fff;
+    background:var(--tint, linear-gradient(135deg,#222,#111)); border:1px solid var(--border);
+    transition:border-color .2s, transform .2s;
+  }
+  .ff-poster:hover { border-color:rgba(255,255,255,.35); transform:translateY(-3px); }
+  .ff-poster-body { padding:28px; width:100%; }
+  .ff-p-meta { font-size:13px; color:rgba(255,255,255,.72); font-weight:500; }
+  .ff-p-title { font-size:46px; font-weight:700; line-height:1.02; letter-spacing:-1px; margin-top:8px; }
+  .ff-p-sub { font-size:20px; font-weight:600; color:rgba(255,255,255,.88); margin-top:6px; }
+  .ff-p-place { font-size:14px; font-weight:600; margin-top:16px; color:#fff; }
+  .ff-p-date {
+    display:inline-block; margin-top:14px;
+    background:#fff; color:#111; font-weight:700; font-size:15px; padding:9px 16px; border-radius:2px;
+  }
+  .ff-p-date.soon { background:rgba(255,255,255,.14); color:#fff; font-weight:500; }
+  .ff-p-tickets {
+    display:inline-block; margin:14px 0 0 10px; vertical-align:top;
+    background:#fff; color:#000; text-decoration:none;
+    font-weight:600; font-size:14px; padding:9px 18px; border-radius:2px;
+  }
+
+  /* ============ УВЕДОМЛЕНИЕ ============ */
+  .toast {
+    position:fixed; bottom:30px; left:50%;
+    transform:translateX(-50%) translateY(100px);
+    background:var(--text); color:#fff; padding:14px 26px;
+    border-radius:30px; font-weight:500; font-size:14px;
+    opacity:0; transition:all .35s; z-index:400;
+    pointer-events:none; box-shadow:0 20px 60px rgba(0,0,0,.25);
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* ============ ПОДВАЛ ============ */
+  footer { background:#0f0f0f; color:#fff; padding:56px 32px 36px; }
+  .footer-inner {
+    max-width:1700px; margin:0 auto;
+    display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px;
+  }
+  .footer-col h4 {
+    font-size:12px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.16em; margin-bottom:18px; color:#fff;
+  }
+  .footer-col p, .footer-col a {
+    display:block; font-size:14px; color:#9a9a94;
+    text-decoration:none; margin-bottom:10px; transition:color .2s;
+  }
+  .footer-col a:hover { color:#fff; }
+  .footer-bottom {
+    max-width:1700px; margin:40px auto 0; padding-top:30px; border-top:1px solid #262626;
+    display:flex; justify-content:space-between; font-size:13px; color:#9a9a94;
+    flex-wrap:wrap; gap:16px;
+  }
+
+  /* ============ АДАПТИВ ============ */
+  @media (max-width:1200px) {
+    .grid, .grid.v3 { --cols:3; }
+    .grid.v2 { --cols:2; }
+    .catalog { gap:32px; }
+  }
+  @media (max-width:1100px) {
+    .hb-left .hb-link { display:none; }
+    .search-box { width:190px; }
+  }
+  @media (max-width:900px) {
+    .catalog { grid-template-columns:1fr; padding:18px 16px 70px; scroll-margin-top:150px; }
+    .sidebar {
+      position:fixed; top:0; left:0; bottom:0; z-index:320;
+      width:min(340px,88vw); max-height:none; padding:0 20px 0;
+      background:#fff; transform:translateX(-100%); transition:transform .3s;
+    }
+    .sidebar.open { transform:none; }
+    .sb-head {
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:2; background:#fff; padding:18px 0 10px;
+      font-size:16px; font-weight:600;
+    }
+    .sb-close { background:none; border:0; font-size:28px; line-height:1; cursor:pointer; color:var(--text); }
+    .sb-apply {
+      display:block; position:sticky; bottom:0; width:100%; margin-top:18px;
+      background:var(--text); color:#fff; border:0; padding:15px; cursor:pointer;
+      font-family:inherit; font-size:14px; font-weight:600;
+    }
+    .tb-filters { display:inline-flex; }
+    .tb-view { display:none; }
+    .tb-right { gap:16px; }
+    .modal-body { grid-template-columns:1fr; }
+    .gallery { padding:20px; }
+    .gallery-main { flex:none; aspect-ratio:1; min-height:0; }
+    .modal-content { padding:30px 24px; }
+    .footer-inner { grid-template-columns:1fr 1fr; }
+    .intro-logo { top:20px; left:20px; font-size:24px; }
+    .intro-center { max-width:100%; padding:0 16px; }
+    .intro-search input { padding:16px 20px 16px 55px; font-size:15px; }
+    .intro-search-icon { width:20px; height:20px; left:20px; }
+  }
+  @media (max-width:768px) {
+    .top-bar {
+      grid-template-columns:auto 1fr auto;
+      grid-template-areas:"lg lg a" "l s s";
+      padding:12px 16px; row-gap:10px; column-gap:10px;
+    }
+    .hb-left { grid-area:l; }
+    .logo { grid-area:lg; justify-self:start; font-size:26px; }
+    .toolbar h2 { white-space:nowrap; }
+    .tb-select { font-size:0; gap:0; }
+    .hb-right { display:contents; }
+    .nav-actions { grid-area:a; justify-self:end; }
+    .search-box { grid-area:s; width:100%; }
+    .city-label { padding:7px 12px; }
+    .cats { justify-content:flex-start; gap:26px; padding:0 16px; }
+    .hero { margin-top:16px; padding:0 16px; }
+    .hero-slider { height:440px; }
+    .grid { column-gap:8px; row-gap:24px; }
+    .name { font-size:12px; min-height:34px; }
+    .meta-row, .delivery { font-size:11px; }
+    .price { font-size:12.5px; }
+    .fav-btn { width:30px; height:30px; top:6px; right:6px; }
+    .fav-btn svg { width:15px; height:15px; }
+    .cart-panel { width:100%; }
+    footer { padding:36px 16px 24px; }
+    .footer-inner { gap:22px; }
+    .footer-bottom { margin-top:24px; padding-top:18px; }
+    .top-strip { font-size:10px; }
+    .intro-center h1 { margin-bottom:20px; }
+  }
+  @media (max-width:700px) {
+    .grid, .grid.v3, .grid.v2 { --cols:2; }
+  }
+  @media (max-width:600px) {
+    .order-body { padding:24px 20px 20px; }
+    .order-title { font-size:20px; }
+    .form-grid { grid-template-columns:1fr; gap:10px; }
+    .form-field.full { grid-column:auto; }
+    .order-actions { flex-direction:column; }
+    .order-cancel { width:100%; }
+    .ff-tab { padding:14px 9px; font-size:11px; }
+    .ff-list { padding:16px; gap:34px; }
+    .ff-tabs { padding:12px 16px; }
+    .ff-cover { min-height:240px; } .ff-cover-body, .ff-poster-body { padding:20px; }
+    .ff-name { font-size:30px; }
+    .ff-poster { min-height:300px; } .ff-p-title { font-size:36px; } .ff-p-sub { font-size:17px; }
+  }
+  @media (max-width:420px) {
+    .footer-inner { grid-template-columns:1fr; }
+  }
+
+  /* экран выбора города остаётся тёмным */
+  .city-btn:hover { border-color:#fff; color:#fff; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <canvas id="planet-canvas"></canvas>
+  <div id="cityLabels"></div>
+
+  <div class="loader" id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Загрузка планеты</div>
+  </div>
+
+
+  <div class="intro-note" role="status">Изображение временно недоступно. Ведутся технические работы. Тестовая версия сайта.</div>
+
+  <div class="intro-center">
+    <h1>FREE LOGISTICS</h1>
+
+    <div class="intro-search">
+      <svg class="intro-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="introSearch" placeholder="Введите город доставки" autocomplete="off">
+    </div>
+
+    <div class="city-select">
+      <button class="city-btn" onclick="selectCity('Москва')">Москва</button>
+      <button class="city-btn" onclick="selectCity('Санкт-Петербург')">Санкт-Петербург</button>
+      <button class="city-btn" onclick="selectCity('Казань')">Казань</button>
+      <button class="city-btn" onclick="selectCity('Екатеринбург')">Екатеринбург</button>
+      <button class="city-btn" onclick="selectCity('Новосибирск')">Новосибирск</button>
+      <button class="city-btn" onclick="selectCity('Краснодар')">Краснодар</button>
+      <button class="city-btn" onclick="selectCity('Сочи')">Сочи</button>
+      <button class="city-btn" onclick="selectCity('Владивосток')">Владивосток</button>
+      <button class="city-btn" onclick="selectCity('Мурманск')">Мурманск</button>
+      <button class="city-btn" onclick="selectCity('Калининград')">Калининград</button>
+    </div>
+  </div>
+</div>
+
+<div id="main-site">
+
+  <div class="top-strip">
+    <span>FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS&nbsp;&nbsp;&nbsp;&nbsp;FREE LOGISTICS</span>
+  </div>
+
+  <header>
+    <div class="top-bar">
+      <div class="hb-left">
+        <button type="button" class="city-label" id="cityLabel" onclick="resetCity()">Москва</button>
+        <a class="hb-link" href="https://t.me/freelogistics" target="_blank" rel="noopener">Telegram</a>
+        <a class="hb-link" href="https://vk.ru/freelogistics1" target="_blank" rel="noopener">ВКонтакте</a>
+      </div>
+      <div class="logo" onclick="setCat('all')">FREE LOGISTICS</div>
+      <div class="hb-right">
+        <div class="search-box">
+          <input type="text" id="search" placeholder="Поиск: Nike, Jordan..." aria-label="Поиск по каталогу">
+          <button type="button" class="photo-btn" id="photoBtn" title="Поиск по фото" aria-label="Поиск по фото">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+              <circle cx="12" cy="13.5" r="3.6"/>
+            </svg>
+          </button>
+          <input type="file" id="photoInput" accept="image/*" hidden>
+        </div>
+        <div class="nav-actions">
+          <button class="icon-btn" onclick="showFavorites()" title="Избранное" aria-label="Избранное">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="badge zero" id="favBadge">0</span>
+          </button>
+          <button class="icon-btn" onclick="toggleCart()" title="Корзина" aria-label="Корзина">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 8h14l-1.2 12H6.2L5 8z"/>
+              <path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>
+            </svg>
+            <span class="badge zero" id="cartBadge">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="cats" id="cats" aria-label="Категории"></nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-slider" id="heroSlider">
+      <!-- слайды собираются скриптом: каждый раз случайный товар -->
+      <div class="hs-dots"></div>
+    </div>
+  </section>
+
+  <main class="catalog" id="catalog">
+    <aside class="sidebar" id="sidebar" aria-label="Фильтры">
+      <div class="sb-head"><span>Фильтры</span><button type="button" class="sb-close" id="sbClose" aria-label="Закрыть">×</button></div>
+      <div id="filterGroups"></div>
+      <button type="button" class="sb-reset" id="resetFilters" hidden>Сбросить все фильтры</button>
+      <button type="button" class="sb-apply" id="sbApply">Показать товары</button>
+    </aside>
+    <section class="results">
+      <div class="photo-bar" id="photoBar" hidden>
+        <img class="pb-thumb" id="pbThumb" alt="Ваше фото">
+        <div class="pb-text"><b id="pbTitle"></b><span id="pbHint"></span></div>
+        <button type="button" class="pb-reset" id="pbReset">Сбросить</button>
+      </div>
+      <div class="toolbar">
+        <h2 id="catTitle">Все товары <small id="countLabel"></small></h2>
+        <button type="button" class="tb-filters" id="openFilters">Фильтры<span id="fbN"></span></button>
+        <div class="tb-right">
+          <label class="tb-select tb-view">Вид
+            <select id="viewSelect">
+              <option value="4">4 в ряд</option>
+              <option value="3">3 в ряд</option>
+              <option value="2">2 в ряд</option>
+            </select>
+          </label>
+          <label class="tb-select">Сортировка
+            <select id="sortSelect">
+              <option value="new">Сначала новые</option>
+              <option value="popular">По популярности</option>
+              <option value="price-asc">Сначала дешевле</option>
+              <option value="price-desc">Сначала дороже</option>
+              <option value="name">По алфавиту</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+    <div class="sb-overlay" id="sbOverlay"></div>
+  </main>
+
+  <section class="pdp" id="pdp" aria-label="Товар">
+    <div class="pdp-inner">
+      <button type="button" class="pdp-back" onclick="closeProduct()">← Все товары</button>
+      <div class="modal-body">
+        <div class="gallery">
+          <div class="gallery-main" id="galleryMain"></div>
+          <div class="gallery-thumbs" id="galleryThumbs"></div>
+        </div>
+        <div class="modal-content">
+          <div class="modal-brand" id="mBrand">BRAND</div>
+          <h2 class="modal-title" id="mName">Название</h2>
+          <div class="modal-price-row">
+            <span class="modal-price" id="mPrice">0 ₽</span>
+          </div>
+
+          <div class="size-head" id="mSizeHead"></div>
+          <div class="size-grid" id="mSizes"></div>
+          <div class="guide-box" id="mGuide" hidden></div>
+
+          <div class="section-label">Характеристики</div>
+          <div class="specs" id="mSpecs"></div>
+
+          <div class="modal-actions">
+            <button class="add-btn" id="mAdd" onclick="addCurrentToCart()" disabled>Выберите размер</button>
+            <button class="secondary-btn" onclick="toggleFavCurrent()" id="mFavBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="dlv" id="mDelivery"></div>
+
+          <a class="poizon-link" id="mPoizon" href="#" target="_blank">Открыть в Poizon →</a>
+
+        </div>
+      </div>
+
+      <div class="reco">
+        <h3>Вам также может понравиться</h3>
+        <div class="reco-row" id="recoRow"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="logo" style="margin-bottom:16px">FREE LOGISTICS</div>
+        <p>FREE LOGISTICS — международная логистика. Привозим оригинальные вещи из США, Китая, Японии, Европы и Кореи. Более 10 000 заказов, 120 городов, 5 лет на рынке.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Каталог</h4>
+        <a href="#" onclick="setCat('sneakers');return false;">Кроссовки</a>
+        <a href="#" onclick="setCat('bags');return false;">Сумки</a>
+        <a href="#" onclick="setCat('accessories');return false;">Аксессуары</a>
+      </div>
+      <div class="footer-col">
+        <h4>Помощь</h4>
+        <a href="#">Доставка и оплата</a>
+        <a href="#">Отслеживание заказа</a>
+        <a href="#">Возврат</a>
+        <a href="#">FAQ</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="consent.html">Согласие на обработку данных</a>
+      </div>
+      <div class="footer-col">
+        <h4>Контакты</h4>
+        <a href="https://t.me/freelogistics" target="_blank">Telegram</a>
+        <a href="https://vk.ru/freelogistics1" target="_blank">ВКонтакте</a>
+        <a href="#">info@fl-logistics.ru</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 FREE LOGISTICS. Все права защищены.</div>
+      <div>Работаем через Белый ввоз · Poizon · Taobao · 1688</div>
+    </div>
+  </footer>
+
+</div>
+
+<div class="overlay" id="cartOverlay" onclick="if(event.target.id==='cartOverlay')toggleCart()"></div>
+<aside class="cart-panel" id="cartPanel">
+  <div class="cart-head">
+    <h3>Корзина<span class="count" id="cartCount">0</span></h3>
+    <button class="close-btn" style="position:static;width:38px;height:38px;font-size:20px" onclick="toggleCart()">×</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="cart-summary">
+      <div class="summary-row"><span>Товары</span><span id="cartSubtotal">0 ₽</span></div>
+      <div class="summary-row"><span>Доставка</span><span style="color:var(--text)">Включена</span></div>
+      <div class="summary-row total"><span>Итого</span><span id="cartTotal">0 ₽</span></div>
+    </div>
+    <label class="agree-row">
+      <input type="checkbox" id="agreeCheckbox">
+      <span>Я даю <a href="consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и ознакомлен с <a href="privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a></span>
+    </label>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Оформить заказ</button>
+  </div>
+</aside>
+
+<!-- ORDER FORM MODAL -->
+<div class="overlay" id="orderOverlay">
+  <div class="modal order-modal">
+    <button class="close-btn" onclick="closeOrderForm()">×</button>
+    <div class="order-body">
+      <div class="order-title">Оформление заказа</div>
+      <div class="order-sub">Заполните данные — заявка уйдёт нам в Telegram</div>
+
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>ФИО <span class="req">*</span></label>
+          <input type="text" id="of_name" placeholder="Иванов Иван Иванович" autocomplete="name">
+        </div>
+        <div class="form-field full">
+          <label>Телефон <span class="req">*</span></label>
+          <input type="tel" id="of_phone" placeholder="+7 (900) 123-45-67" autocomplete="tel">
+        </div>
+        <div class="form-field full">
+          <label>Город <span class="req">*</span></label>
+          <input type="text" id="of_city" placeholder="Москва" autocomplete="address-level2">
+        </div>
+        <div class="form-field full">
+          <label>Улица</label>
+          <input type="text" id="of_street" placeholder="ул. Ленина" autocomplete="address-line1">
+        </div>
+        <div class="form-field">
+          <label>Дом</label>
+          <input type="text" id="of_house" placeholder="15">
+        </div>
+        <div class="form-field">
+          <label>Квартира</label>
+          <input type="text" id="of_flat" placeholder="42">
+        </div>
+        <div class="form-field full">
+          <label>Индекс</label>
+          <input type="text" id="of_index" placeholder="101000" inputmode="numeric">
+        </div>
+        <div class="form-field full">
+          <label>Адрес ПВЗ СДЭК</label>
+          <input type="text" id="of_pvz" placeholder="Москва, ул. Пушкина, 10 (СДЭК)">
+        </div>
+      </div>
+
+      <div class="order-actions">
+        <button class="order-cancel" onclick="closeOrderForm()">Отмена</button>
+        <button class="order-submit" onclick="submitOrder()">Отправить в Telegram</button>
+      </div>
+
+      <div class="order-note">
+        Данные уйдут нам только после того, как вы отправите сообщение в Telegram. Подробнее — в <a href="privacy.html" target="_blank" rel="noopener">политике конфиденциальности</a> и <a href="consent.html" target="_blank" rel="noopener">согласии на обработку данных</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="ff-tab" id="ffTab" onclick="toggleFriends()">Friends &amp; family</button>
+<div class="ff-overlay" id="ffOverlay" onclick="toggleFriends()"></div>
+<aside class="ff-panel" id="ffPanel">
+  <div class="ff-head">
+    <div>
+      <h3>Friends &amp; family</h3>
+      <p>Наши друзья и партнёры</p>
+    </div>
+    <button class="close-btn" style="position:static;width:38px;height:38px;font-size:20px" onclick="toggleFriends()">×</button>
+  </div>
+  <div class="ff-tabs" id="ffTabs"></div>
+  <div class="ff-list" id="ffList"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+let scene, camera, renderer, earth, starField;
+let arcs = [];
+let shakeTime = 0;
+
+const networkCities = [
+  { lat:55.75, lon:37.62, name:'Москва' },
+  { lat:59.93, lon:30.34, name:'СПб' },
+  { lat:55.79, lon:49.11, name:'Казань' },
+  { lat:56.84, lon:60.61, name:'Екб' },
+  { lat:55.03, lon:82.92, name:'Нск' },
+  { lat:45.04, lon:38.98, name:'Крд' },
+  { lat:43.60, lon:39.73, name:'Сочи' },
+  { lat:43.12, lon:131.89, name:'Влд' },
+  { lat:68.97, lon:33.08, name:'Мрм' },
+  { lat:54.71, lon:20.45, name:'Клн' },
+  { lat:51.51, lon:-0.13, name:'Лондон' },
+  { lat:40.71, lon:-74.01, name:'Нью-Йорк' },
+  { lat:35.68, lon:139.69, name:'Токио' },
+  { lat:31.23, lon:121.47, name:'Шанхай' },
+  { lat:39.90, lon:116.40, name:'Пекин' },
+  { lat:37.57, lon:126.98, name:'Сеул' },
+  { lat:22.32, lon:114.17, name:'Гонконг' },
+  { lat:1.35, lon:103.82, name:'Сингапур' },
+  { lat:48.86, lon:2.35, name:'Париж' },
+  { lat:52.52, lon:13.40, name:'Берлин' },
+  { lat:41.90, lon:12.50, name:'Рим' },
+  { lat:41.01, lon:28.98, name:'Стамбул' },
+  { lat:25.20, lon:55.27, name:'Дубай' },
+  { lat:19.08, lon:72.88, name:'Мумбаи' },
+  { lat:-23.55, lon:-46.63, name:'Сан-Паулу' },
+  { lat:34.05, lon:-118.24, name:'Лос-Анджелес' },
+  { lat:-33.87, lon:151.21, name:'Сидней' },
+  { lat:30.04, lon:31.24, name:'Каир' },
+];
+
+const russiaOutline = [
+  [69.5, 30.0], [70.5, 41.0], [68.0, 45.0], [67.0, 41.0], [64.5, 36.0], [66.0, 40.0],
+  [68.5, 53.0], [70.0, 59.0], [73.5, 68.0], [71.0, 73.0], [73.0, 78.0], [76.0, 95.0],
+  [77.7, 104.3], [76.0, 118.0], [73.5, 128.0], [71.5, 136.0], [70.5, 148.0], [69.5, 161.0],
+  [68.0, 173.0], [66.1, -169.8], [64.5, -173.0], [62.0, 179.0], [59.5, 167.0], [56.5, 162.0],
+  [51.0, 156.8], [48.0, 154.0], [45.5, 148.5], [43.8, 145.7], [48.5, 140.0], [45.0, 136.0],
+  [43.1, 131.9], [42.5, 130.7], [44.0, 131.0], [48.5, 135.0], [53.0, 121.0], [50.0, 116.0],
+  [50.3, 87.8], [51.0, 80.0], [51.5, 61.0], [47.0, 48.0], [45.0, 47.5], [43.0, 46.0],
+  [43.6, 39.7], [45.0, 36.5], [50.0, 37.0], [52.0, 32.0], [53.0, 31.5], [55.0, 30.0],
+  [56.0, 27.5], [59.4, 28.0], [60.5, 28.5], [63.0, 30.0], [66.0, 29.5], [68.0, 28.5]
+];
+
+const russiaCities = [
+  { lat:55.75, lon:37.62,  name:'МОСКВА' },
+  { lat:59.93, lon:30.34,  name:'САНКТ-ПЕТЕРБУРГ' },
+  { lat:58.01, lon:56.25,  name:'ПЕРМЬ' },
+  { lat:56.84, lon:60.61,  name:'ЕКАТЕРИНБУРГ' },
+  { lat:61.25, lon:73.40,  name:'СУРГУТ' },
+  { lat:55.03, lon:82.92,  name:'НОВОСИБИРСК' },
+  { lat:56.01, lon:92.87,  name:'КРАСНОЯРСК' },
+  { lat:69.35, lon:88.20,  name:'НОРИЛЬСК' },
+  { lat:52.03, lon:113.50, name:'ЧИТА' },
+  { lat:62.03, lon:129.73, name:'ЯКУТСК' },
+  { lat:48.48, lon:135.08, name:'ХАБАРОВСК' },
+  { lat:43.12, lon:131.89, name:'ВЛАДИВОСТОК' },
+  { lat:53.02, lon:158.65, name:'П-КАМЧАТСКИЙ' },
+  { lat:45.04, lon:38.98,  name:'КРАСНОДАР' },
+  { lat:68.97, lon:33.08,  name:'МУРМАНСК' },
+];
+let cityMarkers = [];
+
+const routes = [
+  [0, 10], [0, 11], [0, 14], [0, 22], [0, 1], [0, 8], [0, 9], [0, 4],
+  [11, 10], [11, 25],
+  [13, 14], [13, 15], [13, 16], [13, 17], [14, 12], [13, 23],
+  [18, 10], [18, 19], [18, 20],
+  [22, 23], [22, 18],
+  [24, 10], [24, 11],
+  [26, 17], [26, 13],
+  [21, 18], [21, 0],
+];
+
+function createGlowTexture(rgb, midStop) {
+  const size = 128;
+  const cnv = document.createElement('canvas');
+  cnv.width = cnv.height = size;
+  const ctx = cnv.getContext('2d');
+  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  grad.addColorStop(0, `rgba(${rgb},1)`);
+  grad.addColorStop(midStop != null ? midStop : 0.35, `rgba(${rgb},0.6)`);
+  grad.addColorStop(1, `rgba(${rgb},0)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(cnv);
+}
+
+let borderLineMaterials = [];
+let markerLineMaterials = [];
+
+function buildRussiaBorder() {
+  const radius = 2.01;
+  const pts = russiaOutline.map(([lat, lon]) => latLonToVec3(lat, lon, radius));
+  const curve = new THREE.CatmullRomCurve3(pts, true, 'catmullrom', 0.3);
+  const smooth = curve.getPoints(600);
+
+  const positions = [];
+  smooth.forEach(p => positions.push(p.x, p.y, p.z));
+  positions.push(smooth[0].x, smooth[0].y, smooth[0].z);
+
+  const geometry = new LineGeometry();
+  geometry.setPositions(positions);
+
+  const group = new THREE.Group();
+
+  const haloMat = new LineMaterial({
+    color:0xff8a3d, linewidth:6, transparent:true, opacity:0.35,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  haloMat.resolution.set(window.innerWidth, window.innerHeight);
+  const halo = new Line2(geometry, haloMat);
+  halo.computeLineDistances();
+  group.add(halo);
+
+  const coreMat = new LineMaterial({
+    color:0xffe3b8, linewidth:1.6, transparent:true, opacity:0.95,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  coreMat.resolution.set(window.innerWidth, window.innerHeight);
+  const core = new Line2(geometry, coreMat);
+  core.computeLineDistances();
+  group.add(core);
+
+  borderLineMaterials.push(haloMat, coreMat);
+  return group;
+}
+
+function buildCityMarkers() {
+  const coreTex = createGlowTexture('255,240,205', 0.18);
+  const haloTex = createGlowTexture('255,160,70', 0.4);
+  const labelsRoot = document.getElementById('cityLabels');
+
+  russiaCities.forEach(c => {
+    const surface = latLonToVec3(c.lat, c.lon, 2.012);
+    const tip = latLonToVec3(c.lat, c.lon, 2.09);
+
+    const haloMat = new THREE.SpriteMaterial({
+      map:haloTex, transparent:true, opacity:0.75,
+      blending:THREE.AdditiveBlending, depthWrite:false
+    });
+    const halo = new THREE.Sprite(haloMat);
+    halo.scale.set(0.15, 0.15, 1);
+    halo.position.copy(surface);
+    earth.add(halo);
+
+    const coreMat = new THREE.SpriteMaterial({
+      map:coreTex, transparent:true, opacity:1,
+      blending:THREE.AdditiveBlending, depthWrite:false
+    });
+    const core = new THREE.Sprite(coreMat);
+    core.scale.set(0.045, 0.045, 1);
+    core.position.copy(surface);
+    earth.add(core);
+
+    const tickGeo = new LineGeometry();
+    tickGeo.setPositions([surface.x, surface.y, surface.z, tip.x, tip.y, tip.z]);
+    const tickMat = new LineMaterial({
+      color:0xffe9c8, linewidth:1.1, transparent:true, opacity:0.65,
+      blending:THREE.AdditiveBlending, depthWrite:false
+    });
+    tickMat.resolution.set(window.innerWidth, window.innerHeight);
+    const tick = new Line2(tickGeo, tickMat);
+    tick.computeLineDistances();
+    earth.add(tick);
+    markerLineMaterials.push(tickMat);
+
+    const el = document.createElement('div');
+    el.className = 'city-tag';
+    el.textContent = c.name;
+    el.style.opacity = 0;
+    labelsRoot.appendChild(el);
+
+    cityMarkers.push({ localPos:tip.clone(), el, phase:Math.random() * Math.PI * 2 });
+  });
+}
+
+function updateCityLabels() {
+  if (!earth || !cityMarkers.length) return;
+  earth.updateMatrixWorld();
+  const w = window.innerWidth, h = window.innerHeight;
+  cityMarkers.forEach(m => {
+    const worldPos = m.localPos.clone().applyMatrix4(earth.matrixWorld);
+    const normal = worldPos.clone().normalize();
+    const toCam = camera.position.clone().sub(worldPos).normalize();
+    const facing = normal.dot(toCam);
+    if (facing < 0.05) { m.el.style.opacity = 0; return; }
+
+    const proj = worldPos.clone().project(camera);
+    if (proj.z > 1) { m.el.style.opacity = 0; return; }
+
+    const x = (proj.x * 0.5 + 0.5) * w;
+    const y = (-proj.y * 0.5 + 0.5) * h;
+    m.el.style.transform = `translate(-50%, -100%) translate(${x}px, ${y}px)`;
+    m.el.style.opacity = Math.min(1, (facing - 0.05) / 0.3);
+  });
+}
+
+function latLonToVec3(lat, lon, radius) {
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -radius * Math.sin(phi) * Math.cos(theta),
+     radius * Math.cos(phi),
+     radius * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+function init3D() {
+  const canvas = document.getElementById('planet-canvas');
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x000308, 0.006);
+
+  camera = new THREE.PerspectiveCamera(38, w/h, 0.1, 1000);
+  camera.position.set(0, 0.3, 7.5);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias:true,
+    alpha:false
+  });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000308, 1);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.95;
+
+  const sunLight = new THREE.DirectionalLight(0xfff4e0, 2.4);
+  sunLight.position.set(-8, 2, 3);
+  scene.add(sunLight);
+
+  const ambientLight = new THREE.AmbientLight(0x0a1525, 0.5);
+  scene.add(ambientLight);
+
+  const rimLight = new THREE.DirectionalLight(0x103010, 0.9);
+  rimLight.position.set(5, -2, -6);
+  scene.add(rimLight);
+
+  const starsGeometry = new THREE.BufferGeometry();
+  const starsCount = 6000;
+  const positions = new Float32Array(starsCount * 3);
+  const colors = new Float32Array(starsCount * 3);
+  for (let i = 0; i < starsCount; i++) {
+    const r = 60 + Math.random() * 200;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos((Math.random() * 2) - 1);
+    positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = r * Math.cos(phi);
+
+    const base = 0.35 + Math.random() * 0.4;
+    const t = Math.random();
+    if (t > 0.9) {
+      colors[i*3] = base * 1.1;
+      colors[i*3+1] = base * 0.9;
+      colors[i*3+2] = base * 0.7;
+    } else if (t > 0.75) {
+      colors[i*3] = base * 0.8;
+      colors[i*3+1] = base * 0.95;
+      colors[i*3+2] = base * 1.15;
+    } else {
+      colors[i*3] = base * 0.9;
+      colors[i*3+1] = base * 0.9;
+      colors[i*3+2] = base * 0.95;
+    }
+  }
+  starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const starsMaterial = new THREE.PointsMaterial({
+    size: 0.4,
+    vertexColors:true,
+    transparent:true,
+    opacity:0.8,
+    sizeAttenuation:true
+  });
+  starField = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(starField);
+
+  const earthGeometry = new THREE.SphereGeometry(2, 128, 128);
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.setCrossOrigin('anonymous');
+
+  const dayMap = textureLoader.load('textures/earth-day.jpg');
+  const nightMap = textureLoader.load('textures/earth-night.jpg');
+  const bumpMap = textureLoader.load('textures/earth-topology.png');
+
+  const earthMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      dayTexture: { value: dayMap },
+      nightTexture: { value: nightMap },
+      bumpTexture: { value: bumpMap },
+      sunDirection: { value: new THREE.Vector3(-1, 0.25, 0.4).normalize() },
+      time: { value: 0 }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D dayTexture;
+      uniform sampler2D nightTexture;
+      uniform vec3 sunDirection;
+      uniform float time;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+
+      void main() {
+        vec3 dayColor = texture2D(dayTexture, vUv).rgb;
+        vec3 nightColor = texture2D(nightTexture, vUv).rgb;
+
+        vec3 darkBlueDay = dayColor * vec3(0.25, 0.4, 0.75);
+
+        vec3 cityLights = nightColor * vec3(3.4, 2.6, 1.3);
+        float flicker = 0.95 + 0.05 * sin(time * 1.3);
+        cityLights *= flicker;
+        cityLights += nightColor * 0.25;
+        cityLights = min(cityLights, vec3(1.35));
+
+        float poleFade = smoothstep(0.0, 0.06, vUv.y) * smoothstep(0.0, 0.06, 1.0 - vUv.y);
+        cityLights *= poleFade;
+
+        vec3 worldNormal = normalize(vNormal);
+        float sunDot = dot(worldNormal, sunDirection);
+
+        float dayAmount = smoothstep(-0.12, 0.32, sunDot);
+
+        vec3 finalColor = mix(cityLights, darkBlueDay, dayAmount);
+
+        float rim = 1.0 - abs(dot(worldNormal, vec3(0.0, 0.0, 1.0)));
+        vec3 rimColor = vec3(0.35, 0.55, 1.0);
+        finalColor += rimColor * rim * rim * 0.6;
+
+        finalColor *= (1.0 - rim * 0.15);
+        finalColor = pow(finalColor, vec3(0.95));
+
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `
+  });
+
+  earth = new THREE.Mesh(earthGeometry, earthMaterial);
+  earth.rotation.x = 1.005;
+  earth.rotation.y = 2.843;
+  earth.rotation.z = 0.4;
+  scene.add(earth);
+
+  routes.forEach((route, i) => {
+    const from = networkCities[route[0]];
+    const to = networkCities[route[1]];
+    if (!from || !to) return;
+
+    const start = latLonToVec3(from.lat, from.lon, 2.02);
+    const end = latLonToVec3(to.lat, to.lon, 2.02);
+
+    const mid = start.clone().add(end).multiplyScalar(0.5);
+    const distance = start.distanceTo(end);
+    mid.normalize().multiplyScalar(2.02 + distance * 0.35);
+
+    const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+    const points = curve.getPoints(50);
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+    const colors = [];
+    for (let j = 0; j < points.length; j++) {
+      const t = j / (points.length - 1);
+      colors.push(1.0, 0.7 + t * 0.2, 0.2 + t * 0.2);
+    }
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    const material = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const line = new THREE.Line(geometry, material);
+    earth.add(line);
+
+    arcs.push({
+      line,
+      baseOpacity: 0.7,
+      phase: Math.random() * Math.PI * 2
+    });
+  });
+
+  window.addEventListener('resize', onResize);
+
+  animate();
+}
+
+function onResize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  borderLineMaterials.forEach(m => m.resolution.set(w, h));
+  markerLineMaterials.forEach(m => m.resolution.set(w, h));
+}
+
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  if (earth) earth.rotation.y += 0.0004;
+
+  if (earth && earth.material.uniforms) {
+    earth.material.uniforms.time.value = t;
+  }
+
+  arcs.forEach(item => {
+    if (item.line) {
+      item.line.material.opacity = item.baseOpacity * (0.6 + 0.4 * Math.sin(t * 1.5 + item.phase));
+    }
+  });
+
+  shakeTime += dt;
+  const shakeX = Math.sin(shakeTime * 0.25) * 0.06;
+  const shakeY = Math.cos(shakeTime * 0.18) * 0.04;
+  camera.position.x = 0 + shakeX;
+  camera.position.y = 0.3 + shakeY;
+  camera.lookAt(0, 0, 0);
+
+  if (starField) starField.rotation.y += 0.00005;
+
+  updateCityLabels();
+  renderer.render(scene, camera);
+}
+
+function selectCity(city) {
+  document.getElementById('cityLabel').textContent = city;
+  window.__selectedCity = city;
+
+  const intro = document.getElementById('intro');
+  const main = document.getElementById('main-site');
+
+  intro.classList.add('hide');
+  setTimeout(() => {
+    main.classList.add('show');
+    document.getElementById('ffTab').classList.add('show');
+    document.body.style.overflow = '';
+    if (typeof pdpOpen !== 'undefined' && pdpOpen) document.getElementById('mDelivery').innerHTML = deliveryHTML();
+    else window.scrollTo(0, 0);
+  }, 500);
+}
+
+function resetCity() {
+  const intro = document.getElementById('intro');
+  const main = document.getElementById('main-site');
+  main.classList.remove('show');
+  document.getElementById('ffTab').classList.remove('show');
+  toggleFriends(false);
+  intro.classList.remove('hide');
+  document.body.style.overflow = 'hidden';
+}
+
+window.selectCity = selectCity;
+window.resetCity = resetCity;
+
+(function boot() {
+  document.getElementById('intro').classList.remove('hide');
+  document.getElementById('main-site').classList.remove('show');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    init3D();
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hide');
+    }, 700);
+  } catch (err) {
+    console.error('3D init error:', err);
+    document.getElementById('loader').classList.add('hide');
+  }
+  // ссылка на товар (например, открытая в новой вкладке браузера) — сразу на сайт, минуя выбор города
+  if (/^#product\/\d+$/.test(location.hash)) selectCity('Москва');
+})();
+
+window.addEventListener('resize', () => { if (renderer) onResize(); });
+
+const introSearch = document.getElementById('introSearch');
+if (introSearch) {
+  const allCities = ['Москва','Санкт-Петербург','Казань','Екатеринбург','Новосибирск',
+                     'Краснодар','Сочи','Владивосток','Мурманск','Калининград',
+                     'Нижний Новгород','Самара','Челябинск','Омск','Ростов-на-Дону',
+                     'Уфа','Красноярск','Воронеж','Пермь','Волгоград'];
+
+  introSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = introSearch.value.trim();
+      if (!val) return;
+      const match = allCities.find(c => c.toLowerCase().includes(val.toLowerCase()));
+      selectCity(match || val);
+    }
+  });
+}
+</script>
+
+<script>
+const PRODUCTS = [
+  {
+    id:1, brand:'Nike', name:'Nike Dunk Low Retro "Malachite" White/Green',
+    cat:'sneakers', isNew:false, popular:95,
+    sizes:[38,38.5,40,40.5,41,42,42.5,43,44,44.5,45],
+    sizeLabel:['38','38.5','40','40.5','41','42','42.5','43','44','44.5','45'],
+    unavailable:[],
+    priceBySize:{
+      38:12620, 38.5:12620, 40:9160, 40.5:9080, 41:8980, 42:9170,
+      42.5:7660, 43:8480, 44:7240, 44.5:8410, 45:8440
+    },
+    old:null,
+    specs:['Расцветка "Малахит" — белый и зелёный','Материал верха: гладкая кожа','Резиновая подошва с амортизацией','Для повседневной носки'],
+    poizon:'https://dw4.co/t/A/1vyXs8kkf',
+    images:['images/nike-dunk-malachite/1.jpg','images/nike-dunk-malachite/2.jpg','images/nike-dunk-malachite/3.jpg','images/nike-dunk-malachite/4.jpg']
+  },
+  {
+    id:2, brand:'Jordan', name:'Jordan Session Suede "Black"',
+    cat:'sneakers', isNew:false, popular:80,
+    sizes:[39,40,41,42,43,44,45],
+    sizeLabel:['39','40','41','42','43','44','45'],
+    unavailable:[],
+    price:19990,
+    old:null,
+    specs:['Низкие Jordan Session из натуральной замши','Резиновая подошва с амортизацией','Для повседневной носки'],
+    poizon:null,
+    images:['images/jordan-session-suede/1.jpg','images/jordan-session-suede/2.jpg','images/jordan-session-suede/3.jpg','images/jordan-session-suede/4.jpg']
+  },
+  {
+    id:3, brand:'Vivienne Westwood', name:'Vivienne Westwood Saturn Pattern Square Optical Glasses',
+    cat:'accessories', isNew:true, popular:75,
+    sizes:[0],
+    sizeLabel:['One Size'],
+    unavailable:[],
+    price:24990,
+    old:null,
+    specs:['Квадратная оправа для очков','Дужки украшены логотипом с кристаллами','Подходят мужчинам и женщинам'],
+    poizon:null,
+    images:['images/vivienne-glasses/1.jpg','images/vivienne-glasses/2.jpg','images/vivienne-glasses/3.jpg','images/vivienne-glasses/4.jpg']
+  },
+  {
+    id:4, brand:'UGG', name:'UGG Cowhide Sports Mid-Top Kids "Sand"',
+    cat:'sneakers', isNew:true, popular:70,
+    sizes:[30,31,32,33,34,35],
+    sizeLabel:['30','31','32','33','34','35'],
+    unavailable:[],
+    price:18990,
+    old:null,
+    specs:['UGG из натуральной кожи в песочном цвете','Материал верха: натуральная коровья кожа','Универсальный силуэт'],
+    poizon:null,
+    images:['images/ugg-sand/1.jpg','images/ugg-sand/2.jpg','images/ugg-sand/3.jpg','images/ugg-sand/4.jpg']
+  },
+  {
+    id:5, brand:'COACH', name:'COACH Sprint 29 Rope Buckle Cowhide Backpack "Green"',
+    cat:'bags', isNew:true, popular:85,
+    sizes:[0],
+    sizeLabel:['One Size'],
+    unavailable:[],
+    price:39990,
+    old:null,
+    specs:['Рюкзак Sprint 29 с застёжкой','Материал: натуральная коровья кожа','Вмещает ноутбук до 15.6", документы A4, iPad','Для повседневной носки, работы и путешествий'],
+    poizon:null,
+    images:['images/coach-sprint-29-green/1.jpg','images/coach-sprint-29-green/2.jpg','images/coach-sprint-29-green/3.jpg','images/coach-sprint-29-green/4.jpg']
+  },
+  {
+    id:6, brand:'Adidas Originals', name:'Adidas Originals AdiFOM Superstar "White"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[36, 36.5, 37, 38, 38.5, 39, 39.5, 40, 40.5, 41, 42, 42.5, 43, 43.5, 44, 44.5, 45, 46.5],
+    sizeLabel:['EU 36', 'EU 36.5', 'EU 37', 'EU 38', 'EU 38.5', 'EU 39', 'EU 39.5', 'EU 40', 'EU 40.5', 'EU 41', 'EU 42', 'EU 42.5', 'EU 43', 'EU 43.5', 'EU 44', 'EU 44.5', 'EU 45', 'EU 46.5'],
+    unavailable:[],
+    priceBySize:{
+      36:4700, 36.5:4640, 37:4810, 38:4910, 38.5:4850, 39:4880, 39.5:5000, 40:4920, 40.5:5200, 41:5120, 42:5180, 42.5:5300, 43:5220, 43.5:5760, 44:5260, 44.5:6800, 45:5290, 46.5:7940
+    },
+    old:null,
+    specs:['Материал AdiFOM (формованная пена)','Бесшовный верх, похож на Crocs','Для повседневной носки летом'],
+    poizon:null,
+    images:['images/adidas-originals-adifom-superstar-white-3722/1.jpg', 'images/adidas-originals-adifom-superstar-white-3722/2.jpg', 'images/adidas-originals-adifom-superstar-white-3722/3.jpg', 'images/adidas-originals-adifom-superstar-white-3722/4.jpg', 'images/adidas-originals-adifom-superstar-white-3722/5.jpg']
+  },
+  {
+    id:7, brand:'Alo Yoga', name:'Alo Yoga Accolade Full Zip Hoodie',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    sizeLabel:['Чёрный — Black · XXS (00-0)', 'Чёрный — Black · XS (2-4)', 'Чёрный — Black · S (4-6)', 'Чёрный — Black · M (8-10)', 'Чёрный — Black · L (12-14)', 'Чёрный — Black · XL (16-18)', 'Чёрный — Black · 2XL (20-22)', 'Серый — Athletic Heather Grey · XS (2-4)', 'Серый — Athletic Heather Grey · S (4-6)', 'Серый — Athletic Heather Grey · M (8-10)', 'Серый — Athletic Heather Grey · L (12-14)', 'Серый — Athletic Heather Grey · XL (16-18)', 'Серый — Athletic Heather Grey · 2XL (20-22)', 'Бежевый — Oat Milk · XS (2-4)', 'Бежевый — Oat Milk · S (4-6)', 'Бежевый — Oat Milk · M (8-10)', 'Бежевый — Oat Milk · L (12-14)', 'Бежевый — Oat Milk · XL (16-18)'],
+    unavailable:[],
+    priceBySize:{
+      1:12550, 2:11180, 3:11500, 4:11690, 5:12170, 6:13480, 7:17000, 8:11690, 9:16210, 10:13970, 11:17210, 12:17570, 13:17000, 14:11690, 15:16210, 16:13970, 17:17210, 18:18890
+    },
+    old:null,
+    specs:['Капюшон с регулировкой, карманы-кенгуру','Материал: мягкий флис, хлопок с полиэстером','Доступен в трёх цветах: чёрный, серый, бежевый'],
+    poizon:null,
+    images:['images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/1.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/2.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/3.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/4.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/5.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/6.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/7.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/8.jpg', 'images/alo-yoga-accolade-full-zip-hoodie-otdeln-3624/9.jpg']
+  },
+  {
+    id:8, brand:'ALYX', name:'ALYX 1017 9SM Logo Print T-shirt "Black"',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3],
+    sizeLabel:['S', 'M', 'L'],
+    unavailable:[],
+    priceBySize:{
+      1:5620, 2:5570, 3:5620
+    },
+    old:null,
+    specs:['Большой логотип 1017 ALYX 9SM на груди','Материал 100% хлопок','Классический крой'],
+    poizon:null,
+    images:['images/alyx-logo-print-t-shirt-black-futbolka-a-3749/1.jpg', 'images/alyx-logo-print-t-shirt-black-futbolka-a-3749/2.jpg', 'images/alyx-logo-print-t-shirt-black-futbolka-a-3749/3.jpg', 'images/alyx-logo-print-t-shirt-black-futbolka-a-3749/4.jpg', 'images/alyx-logo-print-t-shirt-black-futbolka-a-3749/5.jpg']
+  },
+  {
+    id:9, brand:'ASICS', name:'ASICS GEL-NYC Wintery Retro "Oatmeal Grey"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[36, 37, 37.5, 38, 39, 39.5, 40, 40.5, 41.5, 42, 42.5, 43.5, 44, 44.5, 45, 46],
+    sizeLabel:['EU 36', 'EU 37', 'EU 37.5', 'EU 38', 'EU 39', 'EU 39.5', 'EU 40', 'EU 40.5', 'EU 41.5', 'EU 42', 'EU 42.5', 'EU 43.5', 'EU 44', 'EU 44.5', 'EU 45', 'EU 46'],
+    unavailable:[],
+    priceBySize:{
+      36:8690, 37:8510, 37.5:8470, 38:8510, 39:8480, 39.5:9080, 40:8860, 40.5:8810, 41.5:9650, 42:9760, 42.5:10120, 43.5:10260, 44:10400, 44.5:10240, 45:11420, 46:11690
+    },
+    old:null,
+    specs:['Технология GEL в пятке для амортизации','Материал: замша, кожа, дышащая сетка','Unisex'],
+    poizon:null,
+    images:['images/asics-gel-nyc-wintery-retro-versatile-ci-3705/1.jpg', 'images/asics-gel-nyc-wintery-retro-versatile-ci-3705/2.jpg', 'images/asics-gel-nyc-wintery-retro-versatile-ci-3705/3.jpg', 'images/asics-gel-nyc-wintery-retro-versatile-ci-3705/4.jpg', 'images/asics-gel-nyc-wintery-retro-versatile-ci-3705/5.jpg']
+  },
+  {
+    id:10, brand:'COACH', name:'COACH Billfold Wallet 10 Classic Monogram',
+    cat:'accessories', isNew:true, popular:60,
+    sizes:[1, 2],
+    sizeLabel:['Серый', 'Кофейно-коричневый'],
+    unavailable:[],
+    priceBySize:{
+      1:5750, 2:7200
+    },
+    old:null,
+    specs:['Отделение для купюр, 6–8 слотов для карт','Материал: канвас с принтом, телячья кожа','Металлическая застёжка-защёлка с логотипом'],
+    poizon:null,
+    images:['images/coach-billfold-wallet-10-classic-monogra-3604/1.jpg', 'images/coach-billfold-wallet-10-classic-monogra-3604/2.jpg', 'images/coach-billfold-wallet-10-classic-monogra-3604/3.jpg', 'images/coach-billfold-wallet-10-classic-monogra-3604/4.jpg', 'images/coach-billfold-wallet-10-classic-monogra-3604/5.jpg']
+  },
+  {
+    id:11, brand:'COACH', name:'Coach Wallet with Removable Card Case 3-in-1 "Black"',
+    cat:'accessories', isNew:true, popular:60,
+    sizes:[1, 2],
+    sizeLabel:['В коробке', 'в подарочной упаковке'],
+    unavailable:[],
+    priceBySize:{
+      1:9650, 2:9990
+    },
+    old:null,
+    specs:['Основной кошелёк и съёмный кардхолдер на 3 карты','Окошко для документов','Материал: канвас с кожаными деталями'],
+    poizon:null,
+    images:['images/coach-wallet-with-removable-card-case-3-3599/1.jpg', 'images/coach-wallet-with-removable-card-case-3-3599/2.jpg', 'images/coach-wallet-with-removable-card-case-3-3599/3.jpg', 'images/coach-wallet-with-removable-card-case-3-3599/4.jpg', 'images/coach-wallet-with-removable-card-case-3-3599/5.jpg']
+  },
+  {
+    id:12, brand:'C.P. Company', name:'C.P. Company Long Sleeve "White"',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3],
+    sizeLabel:['M', 'L', 'XL'],
+    unavailable:[],
+    priceBySize:{
+      1:10270, 2:7970, 3:10270
+    },
+    old:null,
+    specs:['Материал 100% хлопок','Прямой крой, унисекс'],
+    poizon:null,
+    images:['images/c-p-company-long-sleeve-white-belye-long-3754/1.jpg', 'images/c-p-company-long-sleeve-white-belye-long-3754/2.jpg', 'images/c-p-company-long-sleeve-white-belye-long-3754/3.jpg']
+  },
+  {
+    id:13, brand:'GUCCI', name:'GUCCI Logo Design Regenerated Acetate Sunglasses "Brown"',
+    cat:'accessories', isNew:true, popular:60,
+    sizes:[1],
+    sizeLabel:['51 (O/S)'],
+    unavailable:[],
+    price:13830,
+    old:null,
+    specs:['Неправильная форма оправы','Фирменная фурнитура GUCCI'],
+    poizon:null,
+    images:['images/gucci-glasses-logo-design-regenerated-ac-3762/1.jpg']
+  },
+  {
+    id:14, brand:'Jordan', name:'Jordan Air Jordan 1 Low "Legend Blue"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38.5, 40, 40.5, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46],
+    sizeLabel:['EU 38.5 / US 8 / 245mm', 'EU 40 / US 8.5 / 250mm', 'EU 40.5 / US 9 / 255mm', 'EU 42 / US 9.5 / 265mm', 'EU 42.5 / US 10 / 270mm', 'EU 43 / US 10.5 / 275mm', 'EU 44 / US 11 / 280mm', 'EU 44.5 / US 11.5 / 285mm', 'EU 45 / US 12 / 290mm', 'EU 45.5 / US 12.5 / 295mm', 'EU 46 / US 13 / 300mm'],
+    unavailable:[],
+    priceBySize:{
+      38.5:11940, 40:11100, 40.5:11110, 42:10600, 42.5:10460, 43:11120, 44:9940, 44.5:9670, 45:9670, 45.5:8760, 46:8360
+    },
+    old:null,
+    specs:['Материал: кожа премиум-качества','Резиновая подошва с классическим протектором'],
+    poizon:null,
+    images:['images/jordan-air-jordan-1-low-legend-blue-golu-3668/1.jpg', 'images/jordan-air-jordan-1-low-legend-blue-golu-3668/2.jpg', 'images/jordan-air-jordan-1-low-legend-blue-golu-3668/3.jpg', 'images/jordan-air-jordan-1-low-legend-blue-golu-3668/4.jpg', 'images/jordan-air-jordan-1-low-legend-blue-golu-3668/5.jpg']
+  },
+  {
+    id:15, brand:'Jordan', name:'Jordan Air Jordan 1 SE "Navy Blue"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38, 38.5, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46, 47, 47.5],
+    sizeLabel:['EU 38', 'EU 38.5', 'EU 40', 'EU 40.5', 'EU 41', 'EU 42', 'EU 42.5', 'EU 43', 'EU 44', 'EU 44.5', 'EU 45', 'EU 45.5', 'EU 46', 'EU 47', 'EU 47.5'],
+    unavailable:[],
+    priceBySize:{
+      38:10460, 38.5:9340, 40:9110, 40.5:9040, 41:9290, 42:9320, 42.5:9150, 43:9040, 44:9260, 44.5:9140, 45:9620, 45.5:10310, 46:9610, 47:11570, 47.5:9890
+    },
+    old:null,
+    specs:['Расцветка Navy Blue','Материал: гладкая кожа'],
+    poizon:null,
+    images:['images/jordan-air-jordan-1-se-navy-blue-pervye-3727/1.jpg', 'images/jordan-air-jordan-1-se-navy-blue-pervye-3727/2.jpg', 'images/jordan-air-jordan-1-se-navy-blue-pervye-3727/3.jpg', 'images/jordan-air-jordan-1-se-navy-blue-pervye-3727/4.jpg', 'images/jordan-air-jordan-1-se-navy-blue-pervye-3727/5.jpg']
+  },
+  {
+    id:16, brand:'Jordan', name:'Jordan Checkered Casual Fabric Monogram Bag',
+    cat:'bags', isNew:true, popular:60,
+    sizes:[1, 2],
+    sizeLabel:['Черный цвет', 'Серый цвет'],
+    unavailable:[],
+    priceBySize:{
+      1:7990, 2:8790
+    },
+    old:null,
+    specs:['Вместительное основное отделение и органайзер для ноутбука','Материал: водоотталкивающий нейлон с кожаными деталями','Эргономичные лямки, система вентиляции спины'],
+    poizon:null,
+    images:['images/jordan-checkered-casual-fabric-monogram-3614/1.jpg', 'images/jordan-checkered-casual-fabric-monogram-3614/2.jpg', 'images/jordan-checkered-casual-fabric-monogram-3614/3.jpg', 'images/jordan-checkered-casual-fabric-monogram-3614/4.jpg', 'images/jordan-checkered-casual-fabric-monogram-3614/5.jpg']
+  },
+  {
+    id:17, brand:'Jordan', name:'Jordan Jumpman Logo Training Shorts',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    sizeLabel:['Чёрные · XS', 'Чёрные · S', 'Чёрные · M', 'Чёрные · L', 'Чёрные · XL', 'Чёрные · XXL', 'Чёрные · XXXL', 'Чёрные · XXXXL', 'Белые · XS', 'Белые · S', 'Белые · M', 'Белые · L', 'Белые · XL', 'Белые · XXL', 'Белые · XXXL'],
+    unavailable:[],
+    priceBySize:{
+      1:6860, 2:4510, 3:4540, 4:4540, 5:4490, 6:5440, 7:7490, 8:4540, 9:14090, 10:6890, 11:4620, 12:4370, 13:4320, 14:4420, 15:5470
+    },
+    old:null,
+    specs:['Материал: хлопок, дышащий трикотаж','Длина по колено (5 дюймов)','Доступны в чёрном и белом цвете'],
+    poizon:null,
+    images:['images/jordan-jumpman-logo-training-shorts-blac-3744/1.jpg', 'images/jordan-jumpman-logo-training-shorts-blac-3744/2.jpg', 'images/jordan-jumpman-logo-training-shorts-blac-3744/3.jpg', 'images/jordan-jumpman-logo-training-shorts-blac-3744/4.jpg', 'images/jordan-jumpman-logo-training-shorts-blac-3744/5.jpg']
+  },
+  {
+    id:18, brand:'MARNI', name:'MARNI Logo Print Color Block Sweatshirt "Blue"',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[45, 46, 47, 48],
+    sizeLabel:['45', '46', '47', '48'],
+    unavailable:[],
+    priceBySize:{
+      45:9300, 46:9300, 47:9300, 48:9300
+    },
+    old:null,
+    specs:['Материал 100% хлопок','Классический крой средней посадки','Сезон: осень, зима, весна'],
+    poizon:null,
+    images:['images/marni-logo-print-color-block-sweatshirt-3757/1.jpg', 'images/marni-logo-print-color-block-sweatshirt-3757/2.jpg', 'images/marni-logo-print-color-block-sweatshirt-3757/3.jpg', 'images/marni-logo-print-color-block-sweatshirt-3757/4.jpg', 'images/marni-logo-print-color-block-sweatshirt-3757/5.jpg']
+  },
+  {
+    id:19, brand:'New Balance', name:'New Balance NB 2002R "Cloud Rain Grey"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38.5, 39.5, 40, 40.5, 41.5, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46.5, 47],
+    sizeLabel:['EU 38.5', 'EU 39.5', 'EU 40', 'EU 40.5', 'EU 41.5', 'EU 42', 'EU 42.5', 'EU 43', 'EU 44', 'EU 44.5', 'EU 45', 'EU 45.5', 'EU 46.5', 'EU 47'],
+    unavailable:[],
+    priceBySize:{
+      38.5:10370, 39.5:10460, 40:9770, 40.5:9950, 41.5:9920, 42:10250, 42.5:10260, 43:10240, 44:10240, 44.5:11160, 45:10480, 45.5:16360, 46.5:11160, 47:11490
+    },
+    old:null,
+    specs:['Технология ABZORB для амортизации','Материал: замша, сетка'],
+    poizon:null,
+    images:['images/new-balance-nb-2002r-cloud-rain-grey-nb-3717/1.jpg', 'images/new-balance-nb-2002r-cloud-rain-grey-nb-3717/2.jpg', 'images/new-balance-nb-2002r-cloud-rain-grey-nb-3717/3.jpg', 'images/new-balance-nb-2002r-cloud-rain-grey-nb-3717/4.jpg', 'images/new-balance-nb-2002r-cloud-rain-grey-nb-3717/5.jpg']
+  },
+  {
+    id:20, brand:'Nike', name:'Nike Air Force 1 \'07 "Triple White"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5],
+    sizeLabel:['EU 35.5 / US 5 / 220mm', 'EU 36 / US 5.5 / 225mm', 'EU 36.5 / US 6 / 230mm', 'EU 37.5 / US 6.5 / 235mm', 'EU 38 / US 7 / 240mm', 'EU 38.5 / US 7.5 / 245mm', 'EU 39 / US 8 / 250mm', 'EU 40 / US 8.5 / 255mm', 'EU 40.5 / US 9 / 260mm'],
+    unavailable:[],
+    priceBySize:{
+      35.5:9540, 36:9670, 36.5:8890, 37.5:8760, 38:8890, 38.5:8760, 39:9280, 40:10200, 40.5:11520
+    },
+    old:null,
+    specs:['Материал: гладкая белая кожа','Резиновая подошва с Air-подушкой в пятке'],
+    poizon:null,
+    images:['images/nike-air-force-1-07-triple-white-forsy-d-3653/1.jpg', 'images/nike-air-force-1-07-triple-white-forsy-d-3653/2.jpg', 'images/nike-air-force-1-07-triple-white-forsy-d-3653/3.jpg', 'images/nike-air-force-1-07-triple-white-forsy-d-3653/4.jpg', 'images/nike-air-force-1-07-triple-white-forsy-d-3653/5.jpg']
+  },
+  {
+    id:21, brand:'Nike', name:'Nike Air Max Dn SE "Soft Red"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45],
+    sizeLabel:['EU 38.5 / UK 5.5 / 240mm', 'EU 39 / UK 6 / 245mm', 'EU 40 / UK 6.5 / 250mm', 'EU 40.5 / UK 7 / 255mm', 'EU 41 / UK 7.5 / 260mm', 'EU 42 / UK 8 / 265mm', 'EU 42.5 / UK 8.5 / 270mm', 'EU 43 / UK 9 / 275mm', 'EU 44 / UK 10 / 280mm', 'EU 44.5 / UK 10.5 / 285mm', 'EU 45 / UK 11 / 290mm'],
+    unavailable:[],
+    priceBySize:{
+      38.5:9170, 39:7690, 40:8200, 40.5:11580, 41:9290, 42:7310, 42.5:7940, 43:7920, 44:6790, 44.5:9170, 45:8100
+    },
+    old:null,
+    specs:['Материал: дышащий текстиль, синтетическая кожа','Резиновая подошва, технология Air'],
+    poizon:null,
+    images:['images/nike-air-max-dn-se-soft-krasnye-dn-po-sn-3643/1.jpg', 'images/nike-air-max-dn-se-soft-krasnye-dn-po-sn-3643/2.jpg', 'images/nike-air-max-dn-se-soft-krasnye-dn-po-sn-3643/3.jpg', 'images/nike-air-max-dn-se-soft-krasnye-dn-po-sn-3643/4.jpg', 'images/nike-air-max-dn-se-soft-krasnye-dn-po-sn-3643/5.jpg']
+  },
+  {
+    id:22, brand:'Nike', name:'Nike Air Zoom Spiridon Cage 2 "Silver"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46, 47, 47.5],
+    sizeLabel:['EU 38.5 / 240mm', 'EU 39 / 245mm', 'EU 40 / 250mm', 'EU 40.5 / 255mm', 'EU 41 / 260mm', 'EU 42 / 265mm', 'EU 42.5 / 270mm', 'EU 43 / 275mm', 'EU 44 / 280mm', 'EU 44.5 / 285mm', 'EU 45 / 290mm', 'EU 45.5 / 295mm', 'EU 46 / 300mm', 'EU 47 / 305mm', 'EU 47.5 / 310mm'],
+    unavailable:[],
+    priceBySize:{
+      38.5:9660, 39:6960, 40:6340, 40.5:6370, 41:5980, 42:6230, 42.5:6010, 43:6160, 44:6560, 44.5:7200, 45:7580, 45.5:8590, 46:7390, 47:13960, 47.5:15370
+    },
+    old:null,
+    specs:['Технология Zoom Air в подошве','Материал: сетка, кожа'],
+    poizon:null,
+    images:['images/nike-air-zoom-spiridon-cage-2-silver-ser-3739/1.jpg', 'images/nike-air-zoom-spiridon-cage-2-silver-ser-3739/2.jpg', 'images/nike-air-zoom-spiridon-cage-2-silver-ser-3739/3.jpg', 'images/nike-air-zoom-spiridon-cage-2-silver-ser-3739/4.jpg', 'images/nike-air-zoom-spiridon-cage-2-silver-ser-3739/5.jpg']
+  },
+  {
+    id:23, brand:'Nike', name:'Nike Cortez "Brown"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45],
+    sizeLabel:['EU 38 / US 7 / 240mm', 'EU 38.5 / US 7.5 / 245mm', 'EU 39 / US 8 / 250mm', 'EU 40 / US 8.5 / 255mm', 'EU 40.5 / US 9 / 260mm', 'EU 41 / US 9.5 / 265mm', 'EU 42 / US 10 / 270mm', 'EU 42.5 / US 10.5 / 275mm', 'EU 43 / US 11 / 280mm', 'EU 44 / US 11.5 / 285mm', 'EU 44.5 / US 12 / 290mm', 'EU 45 / US 12.5 / 295mm'],
+    unavailable:[],
+    priceBySize:{
+      38:9670, 38.5:10200, 39:9940, 40:9940, 40.5:9670, 41:9810, 42:9670, 42.5:15830, 43:19490, 44:19490, 44.5:17270, 45:20540
+    },
+    old:null,
+    specs:['Материал: гладкая кожа и текстиль','Резиновая подошва с амортизацией'],
+    poizon:null,
+    images:['images/nike-cortez-brown-klassicheskie-kortezy-3638/1.jpg', 'images/nike-cortez-brown-klassicheskie-kortezy-3638/2.jpg', 'images/nike-cortez-brown-klassicheskie-kortezy-3638/3.jpg', 'images/nike-cortez-brown-klassicheskie-kortezy-3638/4.jpg', 'images/nike-cortez-brown-klassicheskie-kortezy-3638/5.jpg']
+  },
+  {
+    id:24, brand:'Nike', name:'Nike Dunk Low "Surfaces In Brown And Sail"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45],
+    sizeLabel:['EU 35.5 / US 5 / 225mm', 'EU 36 / US 5.5 / 230mm', 'EU 36.5 / US 6 / 235mm', 'EU 37.5 / US 7 / 240mm', 'EU 38 / US 7.5 / 245mm', 'EU 38.5 / US 8 / 250mm', 'EU 39 / US 8.5 / 255mm', 'EU 40 / US 9 / 260mm', 'EU 40.5 / US 9.5 / 265mm', 'EU 41 / US 10 / 270mm', 'EU 42 / US 10.5 / 275mm', 'EU 42.5 / US 11 / 280mm', 'EU 43 / US 11.5 / 285mm', 'EU 44 / US 12 / 290mm', 'EU 44.5 / US 12.5 / 295mm', 'EU 45 / US 13 / 300mm'],
+    unavailable:[],
+    priceBySize:{
+      35.5:6790, 36:7390, 36.5:7390, 37.5:8360, 38:7910, 38.5:7960, 39:8500, 40:8810, 40.5:8400, 41:8330, 42:8640, 42.5:9170, 43:9280, 44:8890, 44.5:8500, 45:8500
+    },
+    old:null,
+    specs:['Материал: гладкая кожа премиум-качества','Резиновая подошва с классическим рисунком протектора'],
+    poizon:null,
+    images:['images/nike-dunk-low-surfaces-in-brown-and-sail-3648/1.jpg', 'images/nike-dunk-low-surfaces-in-brown-and-sail-3648/2.jpg', 'images/nike-dunk-low-surfaces-in-brown-and-sail-3648/3.jpg', 'images/nike-dunk-low-surfaces-in-brown-and-sail-3648/4.jpg', 'images/nike-dunk-low-surfaces-in-brown-and-sail-3648/5.jpg']
+  },
+  {
+    id:25, brand:'Nike', name:'Nike Shox TL "Black/Electric Green"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[37.5, 38, 38.5, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46],
+    sizeLabel:['EU 37.5 / UK 4.5 / 235mm', 'EU 38 / UK 5 / 240mm', 'EU 38.5 / UK 5.5 / 240mm', 'EU 40 / UK 6.5 / 250mm', 'EU 40.5 / UK 7 / 255mm', 'EU 41 / UK 7.5 / 260mm', 'EU 42 / UK 8 / 265mm', 'EU 42.5 / UK 8.5 / 270mm', 'EU 43 / UK 9 / 275mm', 'EU 44 / UK 10 / 280mm', 'EU 44.5 / UK 10.5 / 285mm', 'EU 45 / UK 11 / 290mm', 'EU 45.5 / UK 11.5 / 295mm', 'EU 46 / UK 12 / 300mm'],
+    unavailable:[],
+    priceBySize:{
+      37.5:13480, 38:13860, 38.5:12950, 40:10250, 40.5:10720, 41:10130, 42:9560, 42.5:9880, 43:9710, 44:10140, 44.5:10120, 45:11080, 45.5:11240, 46:11380
+    },
+    old:null,
+    specs:['Колонки в пятке для амортизации','Материал: кожа и текстиль'],
+    poizon:null,
+    images:['images/nike-shox-tl-black-electric-green-zeleny-3658/1.jpg', 'images/nike-shox-tl-black-electric-green-zeleny-3658/2.jpg', 'images/nike-shox-tl-black-electric-green-zeleny-3658/3.jpg', 'images/nike-shox-tl-black-electric-green-zeleny-3658/4.jpg', 'images/nike-shox-tl-black-electric-green-zeleny-3658/5.jpg']
+  },
+  {
+    id:26, brand:'Nike', name:'Nike Shox TL "Rare Colorway"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40],
+    sizeLabel:['EU 35.5 / UK 3 / 225mm', 'EU 36 / UK 3.5 / 230mm', 'EU 36.5 / UK 4 / 235mm', 'EU 37.5 / UK 4.5 / 235mm', 'EU 38 / UK 5 / 240mm', 'EU 38.5 / UK 5.5 / 240mm', 'EU 39 / UK 6 / 245mm', 'EU 40 / UK 6.5 / 250mm'],
+    unavailable:[],
+    priceBySize:{
+      35.5:11900, 36:11900, 36.5:11900, 37.5:13520, 38:13500, 38.5:11900, 39:13390, 40:13520
+    },
+    old:null,
+    specs:['Колонки в пятке для амортизации','Материал: кожа и текстиль','Редкая расцветка для девочек'],
+    poizon:null,
+    images:['images/nike-shox-tl-shoksy-dlya-devochek-v-redk-3663/1.jpg', 'images/nike-shox-tl-shoksy-dlya-devochek-v-redk-3663/2.jpg', 'images/nike-shox-tl-shoksy-dlya-devochek-v-redk-3663/3.jpg', 'images/nike-shox-tl-shoksy-dlya-devochek-v-redk-3663/4.jpg', 'images/nike-shox-tl-shoksy-dlya-devochek-v-redk-3663/5.jpg']
+  },
+  {
+    id:27, brand:'Nike', name:'Nike V5 RNR "White/Silver"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5, 46],
+    sizeLabel:['EU 39 / UK 6 / 245mm', 'EU 40 / UK 6.5 / 250mm', 'EU 40.5 / UK 7 / 255mm', 'EU 41 / UK 7.5 / 260mm', 'EU 42 / UK 8 / 265mm', 'EU 42.5 / UK 8.5 / 270mm', 'EU 43 / UK 9 / 275mm', 'EU 44 / UK 10 / 280mm', 'EU 44.5 / UK 10.5 / 285mm', 'EU 45 / UK 11 / 290mm', 'EU 45.5 / UK 11.5 / 295mm', 'EU 46 / UK 12 / 300mm'],
+    unavailable:[],
+    priceBySize:{
+      39:7120, 40:6550, 40.5:6300, 41:6540, 42:6340, 42.5:6250, 43:6600, 44:6890, 44.5:7060, 45:6890, 45.5:10330, 46:9410
+    },
+    old:null,
+    specs:['Амортизация для комфортного бега','Материал: дышащая сетка, синтетические накладки'],
+    poizon:null,
+    images:['images/nike-v5-rnr-comfortable-versatile-slip-r-3700/1.jpg', 'images/nike-v5-rnr-comfortable-versatile-slip-r-3700/2.jpg', 'images/nike-v5-rnr-comfortable-versatile-slip-r-3700/3.jpg', 'images/nike-v5-rnr-comfortable-versatile-slip-r-3700/4.jpg', 'images/nike-v5-rnr-comfortable-versatile-slip-r-3700/5.jpg']
+  },
+  {
+    id:28, brand:'Nike', name:'Nike Zoom Vomero 5 "Brown"',
+    cat:'sneakers', isNew:true, popular:60,
+    sizes:[38, 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 45],
+    sizeLabel:['EU 38 / US 7 / 240mm', 'EU 38.5 / US 7.5 / 245mm', 'EU 39 / US 8 / 250mm', 'EU 40 / US 8.5 / 255mm', 'EU 40.5 / US 9 / 260mm', 'EU 41 / US 9.5 / 265mm', 'EU 42 / US 10 / 270mm', 'EU 42.5 / US 10.5 / 275mm', 'EU 43 / US 11 / 280mm', 'EU 44 / US 11.5 / 285mm', 'EU 45 / US 12.5 / 295mm'],
+    unavailable:[],
+    priceBySize:{
+      38:9500, 38.5:9710, 39:11320, 40:10600, 40.5:10910, 41:10550, 42:10480, 42.5:11450, 43:11570, 44:12050, 45:16130
+    },
+    old:null,
+    specs:['Технология Zoom Air, вспененная промежуточная подошва','Материал: текстиль, синтетическая кожа, замша'],
+    poizon:null,
+    images:['images/nike-zoom-vomero-5-brown-nayk-zum-univer-3633/1.jpg', 'images/nike-zoom-vomero-5-brown-nayk-zum-univer-3633/2.jpg', 'images/nike-zoom-vomero-5-brown-nayk-zum-univer-3633/3.jpg', 'images/nike-zoom-vomero-5-brown-nayk-zum-univer-3633/4.jpg', 'images/nike-zoom-vomero-5-brown-nayk-zum-univer-3633/5.jpg']
+  },
+  {
+    id:29, brand:'OFF-WHITE', name:'OFF-WHITE Vintage American Flag Embroidery T-shirt "Heather Grey"',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3, 4, 5, 6],
+    sizeLabel:['XS', 'S', 'L', 'XL', 'XXL', '3XL'],
+    unavailable:[],
+    priceBySize:{
+      1:10840, 2:10840, 3:10280, 4:10280, 5:10280, 6:10280
+    },
+    old:null,
+    specs:['Материал: хлопок с добавлением эластана','Вышивка в виде винтажного американского флага'],
+    poizon:null,
+    images:['images/off-white-vintage-american-flag-embroide-3732/1.jpg', 'images/off-white-vintage-american-flag-embroide-3732/2.jpg', 'images/off-white-vintage-american-flag-embroide-3732/3.jpg', 'images/off-white-vintage-american-flag-embroide-3732/4.jpg', 'images/off-white-vintage-american-flag-embroide-3732/5.jpg']
+  },
+  {
+    id:30, brand:'Armani', name:'Emporio Armani Irregular Shape Sunglasses',
+    cat:'accessories', isNew:true, popular:60,
+    sizes:[1],
+    sizeLabel:['оправы 56'],
+    unavailable:[],
+    price:5750,
+    old:null,
+    specs:['Материал: качественный пластик и металлические элементы','Защита от УФ-излучения, градиентное затемнение'],
+    poizon:null,
+    images:['images/sunglasses-armani-frame-irregular-shape-3609/1.jpg', 'images/sunglasses-armani-frame-irregular-shape-3609/2.jpg', 'images/sunglasses-armani-frame-irregular-shape-3609/3.jpg', 'images/sunglasses-armani-frame-irregular-shape-3609/4.jpg', 'images/sunglasses-armani-frame-irregular-shape-3609/5.jpg']
+  },
+  {
+    id:31, brand:'Vivienne Westwood', name:'Vivienne Westwood Color Block Logo Crew Neck T-Shirt',
+    cat:'clothing', isNew:true, popular:60,
+    sizes:[1, 2, 3, 4, 5, 6, 7, 8],
+    sizeLabel:['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+    unavailable:[],
+    priceBySize:{
+      1:14260, 2:14260, 3:12290, 4:10070, 5:10330, 6:13650, 7:25640, 8:13090
+    },
+    old:null,
+    specs:['Материал 100% хлопок','Прямой крой (regular fit)','Стирка при 30°C, не отбеливать'],
+    poizon:null,
+    images:['images/vivienne-westwood-color-block-logo-crew-3588/1.jpg', 'images/vivienne-westwood-color-block-logo-crew-3588/2.jpg', 'images/vivienne-westwood-color-block-logo-crew-3588/3.jpg', 'images/vivienne-westwood-color-block-logo-crew-3588/4.jpg', 'images/vivienne-westwood-color-block-logo-crew-3588/5.jpg']
+  }
+];
+
+const CATS = [
+  { id:'all', name:'Все' },
+  { id:'sneakers', name:'Кроссовки' },
+  { id:'clothing', name:'Одежда' },
+  { id:'bags', name:'Сумки' },
+  { id:'accessories', name:'Аксессуары' },
+];
+
+let currentCat = 'all';
+let currentSort = 'new';
+let currentProduct = null;
+let currentSize = null;
+let currentImgIndex = 0;
+let cart = JSON.parse(localStorage.getItem('fl_cart') || '[]');
+let favs = JSON.parse(localStorage.getItem('fl_favs') || '[]');
+let showingFavsOnly = false;
+
+function hasPriceBySize(p) { return p.priceBySize && Object.keys(p.priceBySize).length > 0; }
+function getMinPrice(p) {
+  if (hasPriceBySize(p)) return Math.min(...Object.values(p.priceBySize));
+  return p.price;
+}
+function getPriceForSize(p, size) {
+  if (hasPriceBySize(p) && p.priceBySize[size] != null) return p.priceBySize[size];
+  return p.price;
+}
+function getPriceLabel(p) {
+  if (hasPriceBySize(p)) return getMinPrice(p).toLocaleString('ru-RU') + ' ₽';
+  return p.price.toLocaleString('ru-RU') + ' ₽';
+}
+function heartSVG(filled) {
+  return `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>`;
+}
+
+function renderCats() {
+  const el = document.getElementById('cats');
+  el.innerHTML = CATS.map(c =>
+    `<button class="cat ${c.id===currentCat?'active':''}" onclick="setCat('${c.id}')">${c.name}</button>`
+  ).join('');
+}
+function setCat(id) {
+  leaveProduct(false);
+  clearPhoto();
+  currentCat = id;
+  showingFavsOnly = false;
+  const cat = CATS.find(c => c.id === id);
+  document.getElementById('catTitle').innerHTML = (cat ? cat.name : 'Все товары') + ' <small id="countLabel"></small>';
+  resetFilterState();
+  renderFilters();
+  renderCats();
+  renderGrid();
+  scrollToCatalog();
+}
+function scrollToCatalog() { document.getElementById('catalog').scrollIntoView({behavior:'smooth'}); }
+function showFavorites() {
+  if (!favs.length) { showToast('Избранное пока пустое'); return; }
+  leaveProduct(false);
+  clearPhoto();
+  showingFavsOnly = true;
+  currentCat = 'all';
+  document.getElementById('catTitle').innerHTML = 'Избранное <small id="countLabel"></small>';
+  resetFilterState();
+  renderFilters();
+  renderCats();
+  renderGrid();
+  scrollToCatalog();
+}
+// ============================================================
+// === ПОИСК ПО ФОТО ===
+// Сравнение по цвету и форме предмета прямо в браузере: фото никуда не отправляется.
+// ============================================================
+let photoRank = null;               // Map id -> сходство; null — режим выключен
+const photoCache = new Map();       // id -> признаки картинок товара
+const PHOTO_MAX = 12, PHOTO_MIN = 0.3;
+
+function loadImage(src) {
+  return new Promise((ok, fail) => { const im = new Image(); im.onload = () => ok(im); im.onerror = fail; im.src = src; });
+}
+// признаки картинки: цветовая гистограмма предмета + силуэт 8×8 (фон по краям отбрасывается)
+function photoFeatures(img) {
+  const N = 48, cv = document.createElement('canvas');
+  cv.width = cv.height = N;
+  const ctx = cv.getContext('2d', { willReadFrequently:true });
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const side = Math.min(w, h) * 0.94;
+  ctx.drawImage(img, (w - side) / 2, (h - side) / 2, side, side, 0, 0, N, N);
+  const d = ctx.getImageData(0, 0, N, N).data;           // бросит ошибку, если картинка с чужого источника
+  let br = 0, bg = 0, bb = 0, bn = 0;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    if (i < 3 || j < 3 || i >= N - 3 || j >= N - 3) { const k = (i * N + j) * 4; br += d[k]; bg += d[k+1]; bb += d[k+2]; bn++; }
+  }
+  br /= bn; bg /= bn; bb /= bn;
+  const hist = new Array(28).fill(0), grid = new Array(64).fill(0), gcnt = new Array(64).fill(0);
+  let tot = 0, fgN = 0;
+  const px = [];
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const k = (i * N + j) * 4, r = d[k], g = d[k+1], b = d[k+2];
+    const fg = Math.hypot(r - br, g - bg, b - bb) > 42;
+    px.push(fg); if (fg) fgN++;
+  }
+  const useAll = fgN < N * N * 0.03;                      // фон не нашли — берём всё кадр
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const idx = i * N + j, k = idx * 4, fg = useAll || px[idx];
+    const cell = ((i / 6) | 0) * 8 + ((j / 6) | 0);
+    gcnt[cell]++; if (fg) grid[cell]++;
+    if (!fg) continue;
+    const dx = (j - N / 2) / (N / 2), dy = (i - N / 2) / (N / 2);
+    const wgt = Math.exp(-(dx * dx + dy * dy) * 1.2);       // центр важнее краёв
+    const r = d[k] / 255, g = d[k+1] / 255, b = d[k+2] / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), df = mx - mn;
+    const v = mx, sat = mx ? df / mx : 0;
+    let bin;
+    if (v < 0.2) bin = 0;
+    else if (sat < 0.2) bin = v < 0.5 ? 1 : v < 0.8 ? 2 : 3;
+    else {
+      let hh = df === 0 ? 0 : mx === r ? ((g - b) / df) % 6 : mx === g ? (b - r) / df + 2 : (r - g) / df + 4;
+      hh = (hh * 60 + 360) % 360;
+      bin = 4 + (((hh / 30) | 0) % 12) * 2 + (sat < 0.55 ? 0 : 1);
+    }
+    hist[bin] += wgt; tot += wgt;
+  }
+  if (tot) for (let i = 0; i < hist.length; i++) hist[i] /= tot;
+  for (let i = 0; i < 64; i++) grid[i] = gcnt[i] ? grid[i] / gcnt[i] : 0;
+  return { hist, grid };
+}
+function photoSim(a, b) {
+  let inter = 0; for (let i = 0; i < a.hist.length; i++) inter += Math.min(a.hist[i], b.hist[i]);
+  let diff = 0, sum = 0; for (let i = 0; i < 64; i++) { diff += Math.abs(a.grid[i] - b.grid[i]); sum += a.grid[i] + b.grid[i]; }
+  const shape = 1 - diff / (sum + 1e-6);
+  return inter * 0.68 + shape * 0.32;
+}
+async function productFeatures(p) {
+  if (photoCache.has(p.id)) return photoCache.get(p.id);
+  const out = [];
+  for (const src of (p.images || []).slice(0, 2)) {
+    try { out.push(photoFeatures(await loadImage(src))); }
+    catch (e) { if (e && e.name === 'SecurityError') throw e; }
+  }
+  photoCache.set(p.id, out);
+  return out;
+}
+function clearPhoto() {
+  if (!photoRank) return;
+  photoRank = null;
+  document.getElementById('photoBar').hidden = true;
+  const cat = CATS.find(c => c.id === currentCat);
+  document.getElementById('catTitle').innerHTML = (showingFavsOnly ? 'Избранное' : cat ? cat.name : 'Все товары') + ' <small id="countLabel"></small>';
+}
+async function searchByPhoto(file) {
+  if (!file || !/^image\//.test(file.type)) { showToast('Выберите фотографию'); return; }
+  leaveProduct(false);
+  const bar = document.getElementById('photoBar'), title = document.getElementById('pbTitle'), hint = document.getElementById('pbHint');
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(url);
+    // миниатюра для плашки
+    const t = document.createElement('canvas'); t.width = t.height = 104;
+    const tc = t.getContext('2d'), sd = Math.min(img.naturalWidth, img.naturalHeight);
+    tc.drawImage(img, (img.naturalWidth - sd) / 2, (img.naturalHeight - sd) / 2, sd, sd, 0, 0, 104, 104);
+    document.getElementById('pbThumb').src = t.toDataURL('image/jpeg', 0.8);
+    title.textContent = 'Ищем похожие товары…';
+    hint.textContent = 'Фото обрабатывается на вашем устройстве и никуда не отправляется';
+    bar.hidden = false;
+    const mine = photoFeatures(img);
+    const scores = new Map();
+    for (const p of PRODUCTS) {
+      const fs = await productFeatures(p);
+      if (fs.length) scores.set(p.id, Math.max(...fs.map(f => photoSim(mine, f))));
+    }
+    const top = [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, PHOTO_MAX).filter(e => e[1] >= PHOTO_MIN);
+    photoRank = new Map(top);
+    currentCat = 'all'; showingFavsOnly = false;
+    document.getElementById('search').value = '';
+    resetFilterState(); renderFilters(); renderCats();
+    document.getElementById('catTitle').innerHTML = 'Похожие по фото <small id="countLabel"></small>';
+    title.textContent = top.length ? 'Показаны товары, похожие на ваше фото' : 'Похожих товаров не нашлось';
+    hint.textContent = top.length ? 'Сравниваем цвет и форму. Лучше работает фото предмета на ровном фоне.' : 'Попробуйте сфотографировать предмет крупнее и на ровном фоне.';
+    renderGrid();
+    scrollToCatalog();
+  } catch (e) {
+    bar.hidden = true;
+    showToast(e && e.name === 'SecurityError'
+      ? 'Поиск по фото работает на опубликованном сайте, не из файла'
+      : 'Не удалось обработать фото');
+  } finally { URL.revokeObjectURL(url); }
+}
+document.getElementById('photoBtn').addEventListener('click', () => document.getElementById('photoInput').click());
+document.getElementById('photoInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; searchByPhoto(f); });
+document.getElementById('pbReset').addEventListener('click', () => { clearPhoto(); renderFilters(); renderCats(); renderGrid(); });
+
+function getFiltered() {
+  let list = [...PRODUCTS];
+  if (photoRank) list = list.filter(p => photoRank.has(p.id));
+  else {
+    if (showingFavsOnly) list = list.filter(p => favs.includes(p.id));
+    else if (currentCat !== 'all') list = list.filter(p => p.cat === currentCat);
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    if (q) list = list.filter(p => (p.name + ' ' + p.brand).toLowerCase().includes(q));
+  }
+  if (F.brands.size) list = list.filter(p => F.brands.has(p.brand));
+  if (F.fsizes.size || F.csizes.size) {
+    list = list.filter(p =>
+      (F.fsizes.size && p.cat === 'sneakers' && p.sizes.some(v => F.fsizes.has(String(v)) && !(p.unavailable || []).includes(v))) ||
+      (F.csizes.size && p.cat === 'clothing' && clothTokens(p).some(t => F.csizes.has(t))));
+  }
+  const pLo = parseFloat(F.min), pHi = parseFloat(F.max);
+  if (!isNaN(pLo) || !isNaN(pHi)) list = list.filter(p => priceInRange(p, isNaN(pLo) ? -Infinity : pLo, isNaN(pHi) ? Infinity : pHi));
+  if (photoRank) { list.sort((a,b) => photoRank.get(b.id) - photoRank.get(a.id)); return list; }
+  switch (currentSort) {
+    case 'price-asc': list.sort((a,b) => getMinPrice(a) - getMinPrice(b)); break;
+    case 'price-desc': list.sort((a,b) => getMinPrice(b) - getMinPrice(a)); break;
+    case 'name': list.sort((a,b) => a.name.localeCompare(b.name)); break;
+    case 'popular': list.sort((a,b) => b.popular - a.popular); break;
+    default: list.sort((a,b) => (b.isNew?1:0) - (a.isNew?1:0) || b.popular - a.popular);
+  }
+  return list;
+}
+function hasImages(p) { return p.images && p.images.length > 0; }
+
+// ============================================================
+// === ФИЛЬТРЫ КАТАЛОГА ===
+// ============================================================
+const F = { brands:new Set(), fsizes:new Set(), csizes:new Set(), min:'', max:'' };
+const FOPEN = { brand:false, fsize:false, csize:false, price:false };
+const CLOTH_ORDER = ['XXS','XS','S','M','L','XL','XXL','3XL','4XL'];
+const escHTML = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+// из подписи размера («Чёрный — Black · XXS (00-0)», «M», «2XL») достаём стандартный размер одежды
+function clothTokens(p) {
+  const out = new Set();
+  (p.sizeLabel || []).forEach(l => {
+    const str = String(l).trim();
+    const m = str.match(/(?:^|[^A-Za-z0-9])(4XL|3XL|2XL|XXXXL|XXXL|XXL|XL|XXS|XS|S|M|L)(?![A-Za-z0-9])/);
+    if (m) out.add({ XXXXL:'4XL', XXXL:'3XL', '2XL':'XXL' }[m[1]] || m[1]);
+    else if (/^\d{2}$/.test(str)) out.add(str);
+  });
+  return [...out];
+}
+function priceList(p) { return hasPriceBySize(p) ? Object.values(p.priceBySize) : [p.price]; }
+function priceInRange(p, lo, hi) { return priceList(p).some(v => v >= lo && v <= hi); }
+function scopeProducts() { return currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat); }
+function resetFilterState() { F.brands.clear(); F.fsizes.clear(); F.csizes.clear(); F.min = ''; F.max = ''; }
+function priceActive() { return F.min !== '' || F.max !== ''; }
+function activeFilterCount() { return F.brands.size + F.fsizes.size + F.csizes.size + (priceActive() ? 1 : 0); }
+
+function filterGroupHTML(key, title, count, body) {
+  return `<details class="fg" data-g="${key}" ${FOPEN[key] ? 'open' : ''}><summary><span class="fg-t">${title}${count ? `<span class="fg-n">(${count})</span>` : ''}</span></summary><div class="fg-body">${body}</div></details>`;
+}
+
+function renderFilters() {
+  const el = document.getElementById('filterGroups');
+  if (!el) return;
+  const scope = scopeProducts();
+  const html = [];
+
+  const bc = {};
+  scope.forEach(p => { bc[p.brand] = (bc[p.brand] || 0) + 1; });
+  const brands = Object.keys(bc).sort((a, b) => a.localeCompare(b));
+  if (brands.length > 1) {
+    html.push(filterGroupHTML('brand', 'Бренд', F.brands.size,
+      '<div class="fg-list">' + brands.map(b =>
+        `<label class="chk"><input type="checkbox" data-f="brands" data-v="${escHTML(b)}" ${F.brands.has(b) ? 'checked' : ''}><span>${escHTML(b)}</span><em>${bc[b]}</em></label>`
+      ).join('') + '</div>'));
+  }
+
+  const shoe = new Set();
+  scope.filter(p => p.cat === 'sneakers').forEach(p => p.sizes.forEach(v => shoe.add(String(v))));
+  if (shoe.size) {
+    const list = [...shoe].sort((a, b) => parseFloat(a) - parseFloat(b));
+    html.push(filterGroupHTML('fsize', 'Размер обуви', F.fsizes.size,
+      '<div class="chips">' + list.map(v =>
+        `<button type="button" class="chip ${F.fsizes.has(v) ? 'on' : ''}" data-f="fsizes" data-v="${v}">${v}</button>`
+      ).join('') + '</div>'));
+  }
+
+  const cl = new Set();
+  scope.filter(p => p.cat === 'clothing').forEach(p => clothTokens(p).forEach(t => cl.add(t)));
+  if (cl.size) {
+    const rank = t => { const i = CLOTH_ORDER.indexOf(t); return i === -1 ? 100 + parseFloat(t) : i; };
+    const list = [...cl].sort((a, b) => rank(a) - rank(b));
+    html.push(filterGroupHTML('csize', 'Размер одежды', F.csizes.size,
+      '<div class="chips">' + list.map(v =>
+        `<button type="button" class="chip ${F.csizes.has(v) ? 'on' : ''}" data-f="csizes" data-v="${v}">${v}</button>`
+      ).join('') + '</div>'));
+  }
+
+  const prices = scope.flatMap(priceList);
+  const lo = Math.min(...prices), hi = Math.max(...prices);
+  html.push(filterGroupHTML('price', 'Цена, ₽', priceActive() ? 1 : 0,
+    `<div class="price-f"><input type="number" inputmode="numeric" min="0" placeholder="${lo}" value="${escHTML(F.min)}" data-f="min" aria-label="Цена от"><span>—</span><input type="number" inputmode="numeric" min="0" placeholder="${hi}" value="${escHTML(F.max)}" data-f="max" aria-label="Цена до"></div>`));
+
+  el.innerHTML = html.join('');
+  syncFilterUi();
+}
+
+function syncFilterUi() {
+  const counts = { brand:F.brands.size, fsize:F.fsizes.size, csize:F.csizes.size, price:priceActive() ? 1 : 0 };
+  document.querySelectorAll('#filterGroups .fg').forEach(d => {
+    const t = d.querySelector('.fg-t');
+    const n = counts[d.dataset.g];
+    let badge = t.querySelector('.fg-n');
+    if (n) {
+      if (!badge) { badge = document.createElement('span'); badge.className = 'fg-n'; t.appendChild(badge); }
+      badge.textContent = '(' + n + ')';
+    } else if (badge) badge.remove();
+  });
+  const total = activeFilterCount();
+  const rs = document.getElementById('resetFilters');
+  if (rs) rs.hidden = !total;
+  const fb = document.getElementById('fbN');
+  if (fb) fb.textContent = total ? ' · ' + total : '';
+}
+function syncApply(n) {
+  const ap = document.getElementById('sbApply');
+  if (ap) ap.textContent = 'Показать товары · ' + n;
+}
+function toggleSet(set, v, on) { if (on) set.add(v); else set.delete(v); }
+function afterFilter() { syncFilterUi(); renderGrid(); }
+
+function initFilterUi() {
+  const groups = document.getElementById('filterGroups');
+  groups.addEventListener('change', e => {
+    const t = e.target;
+    if (t.matches('input[type="checkbox"]')) { toggleSet(F[t.dataset.f], t.dataset.v, t.checked); afterFilter(); }
+  });
+  groups.addEventListener('click', e => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    const on = !c.classList.contains('on');
+    c.classList.toggle('on', on);
+    toggleSet(F[c.dataset.f], c.dataset.v, on);
+    afterFilter();
+  });
+  groups.addEventListener('input', e => {
+    const t = e.target;
+    if (t.dataset.f === 'min' || t.dataset.f === 'max') { F[t.dataset.f] = t.value; afterFilter(); }
+  });
+  groups.addEventListener('toggle', e => {
+    const d = e.target;
+    if (d.dataset && d.dataset.g) FOPEN[d.dataset.g] = d.open;
+  }, true);
+
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    resetFilterState(); renderFilters(); renderGrid();
+  });
+
+  // на телефоне фильтры открываются выезжающей панелью
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sbOverlay');
+  const openSb = open => {
+    sb.classList.toggle('open', open);
+    ov.classList.toggle('show', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  document.getElementById('openFilters').addEventListener('click', () => openSb(true));
+  document.getElementById('sbClose').addEventListener('click', () => openSb(false));
+  document.getElementById('sbApply').addEventListener('click', () => { openSb(false); scrollToCatalog(); });
+  ov.addEventListener('click', () => openSb(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sb.classList.contains('open')) openSb(false); });
+
+  document.getElementById('viewSelect').addEventListener('change', e => {
+    const g = document.getElementById('grid');
+    g.classList.remove('v3', 'v2');
+    if (e.target.value !== '4') g.classList.add('v' + e.target.value);
+  });
+}
+
+
+function renderGrid() {
+  const list = getFiltered();
+  syncApply(list.length);
+  const grid = document.getElementById('grid');
+  const countEl = document.getElementById('countLabel');
+  if (countEl) countEl.textContent = `· ${list.length}`;
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><h3>Ничего не найдено</h3><p>${photoRank ? 'Попробуйте другое фото или поищите по названию' : 'Попробуй другой запрос или категорию'}</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => cardHTML(p, false)).join('');
+}
+
+function cardHTML(p, short) {
+  const isFav = favs.includes(p.id);
+  const imgHTML = hasImages(p) ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy">` : '';
+  return `
+      <a class="product" href="#product/${p.id}" onclick="return productClick(event,${p.id})">
+        <div class="product-img">
+          <button class="fav-btn ${isFav?'active':''}" onclick="event.preventDefault();event.stopPropagation();toggleFav(${p.id},this)">${heartSVG(isFav)}</button>
+          ${imgHTML}
+        </div>
+        <div class="product-info">
+          <div class="name">${p.name}</div>
+          <div class="price-row"><span class="price">${hasPriceBySize(p) ? 'от ' : ''}${getPriceLabel(p)}</span></div>
+          ${short ? '' : '<div class="meta-row"><span class="delivery">Доставка 18–30 дн.</span></div>'}
+        </div>
+      </a>`;
+}
+function productClick(e, id) {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return true;   // открыть в новой вкладке браузера
+  e.preventDefault();
+  openProduct(id);
+  return false;
+}
+
+function toggleFav(id, btn) {
+  const idx = favs.indexOf(id);
+  if (idx === -1) { favs.push(id); showToast('Добавлено в избранное'); }
+  else { favs.splice(idx, 1); showToast('Убрано из избранного'); }
+  localStorage.setItem('fl_favs', JSON.stringify(favs));
+  if (btn) { btn.classList.toggle('active'); btn.innerHTML = heartSVG(favs.includes(id)); }
+  updateBadges();
+  if (showingFavsOnly) renderGrid();
+}
+function toggleFavCurrent() {
+  if (!currentProduct) return;
+  const btn = document.getElementById('mFavBtn');
+  toggleFav(currentProduct.id, null);
+  btn.classList.toggle('active', favs.includes(currentProduct.id));
+}
+
+let pdpOpen = false, savedScroll = 0;
+const MONTHS = ['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'];
+// сроки доставки в днях от сегодняшней даты: [от, до]
+const DELIVERY_DAYS = { free:[18,30], fast:[10,16] };
+function fmtDay(offset) { const d = new Date(); d.setDate(d.getDate() + offset); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function isShoe(p) { return p.cat === 'sneakers'; }
+function fmtNum(n) { return String(n).replace('.', ','); }
+function euToRu(v) { return Math.round((v - 1) * 10) / 10; }   // RU = EU − 1
+function priceTxt(n) { return n.toLocaleString('ru-RU') + ' ₽'; }
+
+function openProduct(id) {
+  const h = '#product/' + id;
+  if (location.hash !== h) location.hash = h;     // сработает hashchange → showProduct
+  else showProduct(id);
+}
+function showProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) { leaveProduct(false); return; }
+  if (!pdpOpen) savedScroll = window.scrollY;
+  currentProduct = p;
+  currentSize = null;
+  currentImgIndex = 0;
+  document.getElementById('mBrand').textContent = p.brand;
+  document.getElementById('mName').textContent = p.name;
+  document.getElementById('mPrice').textContent = (hasPriceBySize(p) ? 'от ' : '') + getPriceLabel(p);
+  renderGallery();
+  renderSizes();
+  document.getElementById('mSpecs').innerHTML = p.specs.map(s => `<div class="spec">${s}</div>`).join('');
+  const addBtn = document.getElementById('mAdd');
+  addBtn.disabled = true;
+  addBtn.textContent = 'Выберите размер';
+  document.getElementById('mFavBtn').classList.toggle('active', favs.includes(p.id));
+  const poizonEl = document.getElementById('mPoizon');
+  if (p.poizon) { poizonEl.href = p.poizon; poizonEl.style.display = 'inline-flex'; }
+  else poizonEl.style.display = 'none';
+  document.getElementById('mDelivery').innerHTML = deliveryHTML();
+  renderReco();
+  pdpOpen = true;
+  document.getElementById('main-site').classList.add('pdp-mode');
+  document.title = p.name + ' — FREE LOGISTICS';
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  // единственный размер выбираем сразу
+  const only = document.querySelectorAll('#mSizes .szc:not(.disabled), #mSizes .size:not(.disabled)');
+  if (p.sizes.length === 1 && only.length === 1) only[0].click();
+}
+function hidePdp(restore) {
+  if (!pdpOpen) return;
+  pdpOpen = false;
+  currentProduct = null;
+  document.getElementById('main-site').classList.remove('pdp-mode');
+  document.title = 'FREE LOGISTICS';
+  if (restore) window.scrollTo({ top: savedScroll, behavior: 'instant' });
+}
+function leaveProduct(restore) {
+  if (!pdpOpen) return;
+  if (location.hash.indexOf('#product/') === 0) history.pushState(null, '', location.pathname + location.search);
+  hidePdp(restore !== false);
+}
+function closeProduct() { leaveProduct(true); }
+function routeFromHash() {
+  const m = location.hash.match(/^#product\/(\d+)$/);
+  if (m) showProduct(+m[1]); else hidePdp(true);
+}
+
+function deliveryHTML() {
+  const city = (document.getElementById('cityLabel').textContent || 'Москва').trim();
+  const addr = city;
+  const f = DELIVERY_DAYS.free, q = DELIVERY_DAYS.fast;
+  const chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  return `
+    <div class="dlv-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 6h12v10h-12z"/><path d="M13.5 9h4l3 3v4h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+      <span>Срок доставки по адресу: <u onclick="resetCity()">${addr}</u></span>${chev}
+    </div>
+    <div class="dlv-cards">
+      <div class="dlv-card"><span>Бесплатная доставка</span><span>${fmtDay(f[0])} – ${fmtDay(f[1])}</span></div>
+      <div class="dlv-card"><span>Ускоренная доставка</span><span>${fmtDay(q[0])} – ${fmtDay(q[1])}</span></div>
+    </div>
+    <div class="dlv-guar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      <div class="dlv-guar-text"><span>7-дневный безусловный возврат</span></div>
+      ${chev}
+    </div>
+    <div class="dlv-guar dlv-line">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12h6M12 9v6"/></svg>
+      <div class="dlv-guar-text"><span>Белый ввоз — легальный импорт с полным таможенным оформлением</span></div>
+      ${chev}
+    </div>
+    <div class="dlv-guar dlv-line">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+      <div class="dlv-guar-text"><span>Страховка груза и отслеживание по трек-номеру</span></div>
+      ${chev}
+    </div>`;
+}
+
+function renderReco() {
+  const p = currentProduct;
+  const score = x => (x.brand === p.brand ? 2 : 0) + (x.cat === p.cat ? 1 : 0);
+  const list = PRODUCTS.filter(x => x.id !== p.id && hasImages(x))
+    .sort((a, b) => score(b) - score(a) || (b.popular || 0) - (a.popular || 0))
+    .slice(0, 18);
+  document.getElementById('recoRow').innerHTML = list.map(x => cardHTML(x, true)).join('');
+}
+
+function renderGallery() {
+  const p = currentProduct;
+  const mainEl = document.getElementById('galleryMain');
+  const thumbsEl = document.getElementById('galleryThumbs');
+  if (!hasImages(p)) {
+    mainEl.innerHTML = ''; thumbsEl.innerHTML = ''; thumbsEl.style.display = 'none'; return;
+  }
+  thumbsEl.style.display = 'grid';
+  const total = p.images.length;
+  mainEl.innerHTML = `
+    <span class="gallery-counter">${currentImgIndex + 1} / ${total}</span>
+    <img src="${p.images[currentImgIndex]}" alt="${p.name}">`;
+  thumbsEl.innerHTML = p.images.map((src, i) =>
+    `<div class="thumb ${i===currentImgIndex?'active':''}" onmouseenter="hoverImg(${i})" onclick="goToImg(${i},event)"><img src="${src}" alt="фото ${i+1}" loading="lazy"></div>`
+  ).join('');
+}
+function prevImg(e) { e && e.stopPropagation(); if (!currentProduct) return; const t = currentProduct.images.length; currentImgIndex = (currentImgIndex - 1 + t) % t; renderGallery(); }
+function nextImg(e) { e && e.stopPropagation(); if (!currentProduct) return; const t = currentProduct.images.length; currentImgIndex = (currentImgIndex + 1) % t; renderGallery(); }
+function hoverImg(i) {
+  if (!currentProduct || i === currentImgIndex) return;
+  currentImgIndex = i;
+  const img = document.querySelector('#galleryMain img');
+  if (img) img.src = currentProduct.images[i];
+  const c = document.querySelector('#galleryMain .gallery-counter');
+  if (c) c.textContent = `${i + 1} / ${currentProduct.images.length}`;
+  document.querySelectorAll('#galleryThumbs .thumb').forEach((t, k) => t.classList.toggle('active', k === i));
+}
+function goToImg(i, e) { e && e.stopPropagation(); currentImgIndex = i; renderGallery(); }
+
+function renderSizes() {
+  const p = currentProduct, shoe = isShoe(p);
+  const labels = (p.sizeLabel || p.sizes).map(String);
+  const withPrice = hasPriceBySize(p);
+  const single = p.sizes.length === 1;
+  const cells = p.sizes.map((val, i) => {
+    if (single) {
+      const dis1 = p.unavailable && p.unavailable.includes(val);
+      return `<button type="button" class="size ${dis1 ? 'disabled' : ''}" ${dis1 ? 'disabled' : ''} onclick="selectSize(${val},this)">${labels[i]}</button>`;
+    }
+    const dis = p.unavailable && p.unavailable.includes(val);
+    const name = shoe ? `<b>${fmtNum(euToRu(val))}</b> <i>(${fmtNum(val)})</i>` : `<b>${labels[i]}</b>`;
+    const pr = withPrice ? `<span class="szc-p">${dis || p.priceBySize[val] == null ? '– ₽' : priceTxt(p.priceBySize[val])}</span>` : '';
+    return `<button type="button" class="szc ${dis ? 'disabled' : ''}" ${dis ? 'disabled' : ''} onclick="selectSize(${val},this)"><span class="szc-n">${name}</span>${pr}</button>`;
+  });
+  const maxLen = Math.max(...labels.map(l => l.length));
+  const cols = shoe ? 4 : (maxLen > 18 ? 1 : maxLen > 8 ? 2 : 4);
+  const fill = (cols - cells.length % cols) % cols;
+  const grid = document.getElementById('mSizes');
+  grid.className = single ? 'sizes' : 'size-grid';
+  grid.style.setProperty('--c', cols);
+  grid.innerHTML = cells.join('') + (single ? '' : '<span class="szc-fill"></span>'.repeat(fill));
+  document.getElementById('mSizeHead').innerHTML = single ? '<div class="section-label" style="margin:0">Выберите размер</div>' :
+    `<div class="size-title">Размер${shoe ? ': <b>RU</b> <i>(EU)</i>' : ''}</div>` +
+    (shoe ? `<button type="button" class="size-guide" onclick="toggleGuide()">Гайд размера <span>›</span></button>` : '');
+  document.getElementById('mGuide').hidden = true;
+}
+function toggleGuide() {
+  const box = document.getElementById('mGuide');
+  if (!box.hidden) { box.hidden = true; return; }
+  const sz = currentProduct.sizes;
+  box.innerHTML = `Соответствие размеров: RU = EU − 1.<div class="guide-scroll"><table>
+    <tr><th>RU</th>${sz.map(v => `<td>${fmtNum(euToRu(v))}</td>`).join('')}</tr>
+    <tr><th>EU</th>${sz.map(v => `<td>${fmtNum(v)}</td>`).join('')}</tr></table></div>`;
+  box.hidden = false;
+}
+function selectSize(val, btn) {
+  currentSize = val;
+  document.querySelectorAll('#mSizes .szc, #mSizes .size').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const price = getPriceForSize(currentProduct, val);
+  document.getElementById('mPrice').textContent = priceTxt(price);
+  const addBtn = document.getElementById('mAdd');
+  addBtn.disabled = false;
+  addBtn.textContent = `Добавить · ${priceTxt(price)}`;
+}
+function addCurrentToCart() {
+  if (!currentProduct || currentSize === null) return;
+  const key = currentProduct.id + '_' + currentSize;
+  const existing = cart.find(i => i.key === key);
+  const img = hasImages(currentProduct) ? currentProduct.images[0] : null;
+  const price = getPriceForSize(currentProduct, currentSize);
+  if (existing) existing.qty++;
+  else cart.push({
+    key, id: currentProduct.id,
+    name: currentProduct.name,
+    brand: currentProduct.brand,
+    image: img, price, size: currentSize,
+    sizeLabel: isShoe(currentProduct) ? `RU ${fmtNum(euToRu(currentSize))} (EU ${fmtNum(currentSize)})` :
+      (currentProduct.sizeLabel ?
+        currentProduct.sizeLabel[currentProduct.sizes.indexOf(currentSize)] : currentSize),
+    qty: 1,
+  });
+  saveCart(); showToast('Добавлено в корзину'); renderCart();
+  if (!document.getElementById('cartPanel').classList.contains('show')) toggleCart();
+}
+function saveCart() { localStorage.setItem('fl_cart', JSON.stringify(cart)); updateBadges(); }
+function changeQty(key, delta) {
+  const item = cart.find(i => i.key === key);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.key !== key);
+  saveCart(); renderCart();
+}
+function removeItem(key) { cart = cart.filter(i => i.key !== key); saveCart(); renderCart(); }
+
+function renderCart() {
+  const el = document.getElementById('cartItems');
+  const countEl = document.getElementById('cartCount');
+  const totalCount = cart.reduce((s, i) => s + i.qty, 0);
+  if (countEl) countEl.textContent = totalCount ? ` (${totalCount})` : '';
+  if (!cart.length) {
+    el.innerHTML = `<div class="cart-empty"><h3>Корзина пуста</h3><p>Добавь товары из каталога</p></div>`;
+  } else {
+    el.innerHTML = cart.map(i => {
+      const imgHTML = i.image ? `<img src="${i.image}" alt="${i.name}">` : '';
+      return `
+      <div class="cart-item">
+        <div class="cart-item-img">${imgHTML}</div>
+        <div class="cart-item-info">
+          <h4>${i.name}</h4>
+          <div class="sz">${i.brand} · ${typeof i.sizeLabel === 'number' ? i.sizeLabel + ' EU' : i.sizeLabel}</div>
+          <div class="p">${(i.price * i.qty).toLocaleString('ru-RU')} ₽</div>
+          <div class="qty-controls">
+            <button onclick="changeQty('${i.key}',-1)">−</button>
+            <span>${i.qty}</span>
+            <button onclick="changeQty('${i.key}',1)">+</button>
+          </div>
+        </div>
+        <button class="remove-btn" onclick="removeItem('${i.key}')">×</button>
+      </div>`;
+    }).join('');
+  }
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('cartSubtotal').textContent = total.toLocaleString('ru-RU') + ' ₽';
+  document.getElementById('cartTotal').textContent = total.toLocaleString('ru-RU') + ' ₽';
+
+  const agree = document.getElementById('agreeCheckbox');
+  const agreeOk = agree ? agree.checked : true;
+  document.getElementById('checkoutBtn').disabled = !cart.length || !agreeOk;
+}
+
+// ============================================================
+// === FRIENDS & FAMILY ===
+// ============================================================
+const FRIENDS = [
+  {
+    slug: 'reklama-1',
+    name: 'Реклама 1',
+    tag: '',
+    desc: '',
+    url: '',
+    concerts: [],
+    drops: []
+  },
+  {
+    slug: 'reklama-2',
+    name: 'Реклама 2',
+    tag: '',
+    desc: '',
+    url: '',
+    concerts: [],
+    drops: []
+  },
+  {
+    slug: 'reklama-3',
+    name: 'Реклама 3',
+    tag: '',
+    desc: '',
+    url: '',
+    concerts: [],
+    drops: []
+  }
+];
+
+function ffDate(c) {
+  if (!c.date) return `<div class="ff-p-date soon">Дата скоро</div>`;
+  const d = new Date(c.date + 'T00:00:00');
+  if (isNaN(d)) return `<div class="ff-p-date soon">Дата скоро</div>`;
+  const opts = { day:'numeric', month:'long', weekday:'short' };
+  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+  const txt = d.toLocaleDateString('ru-RU', opts) + (c.time ? ' · ' + c.time : '');
+  return `<div class="ff-p-date">${txt}</div>`;
+}
+
+let ffActive = 0;
+
+function setFriendTab(i) {
+  ffActive = i;
+  renderFriends();
+  const list = document.getElementById('ffList');
+  if (list) list.scrollTop = 0;
+}
+window.setFriendTab = setFriendTab;
+
+function renderFriends() {
+  const tabsEl = document.getElementById('ffTabs');
+  const listEl = document.getElementById('ffList');
+  if (!tabsEl || !listEl) return;
+
+  const imgErr = "this.remove()";
+
+  tabsEl.innerHTML = FRIENDS.map((f, i) => {
+    const initials = f.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return `<button type="button" class="${i === ffActive ? 'active' : ''}" onclick="setFriendTab(${i})">
+      <span class="ff-ava">${initials}<img src="images/friends/${f.slug}/cover.jpg" alt="" onerror="this.remove()"></span>${f.name}
+    </button>`;
+  }).join('');
+
+  const f = FRIENDS[ffActive];
+  if (!f) { listEl.innerHTML = ''; return; }
+
+  const isEmpty = !f.tag && !f.desc && !(f.concerts && f.concerts.length) && !(f.drops && f.drops.length) && !f.url;
+
+  if (isEmpty) {
+    listEl.innerHTML = `
+      <div class="ff-section">
+        <div class="ff-info">
+          <div class="ff-name">${f.name}</div>
+          <div class="ff-desc" style="margin-top:14px;color:var(--muted);">Здесь пока пусто</div>
+          <div class="ff-badge">Реклама · наши друзья</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const concerts = (f.concerts || []).slice().sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+  const afisha = concerts.length ? `
+    <div class="ff-afisha-title">Афиша · ${f.name}</div>
+    ${concerts.map(c => `
+      <div class="ff-poster" style="--tint:${c.tint || ''}">
+        <img src="images/friends/${f.slug}/concerts/${c.slug}.jpg" alt="${c.title}" loading="lazy" onerror="${imgErr}">
+        <div class="ff-poster-body">
+          <div class="ff-p-meta">${c.meta}</div>
+          <div class="ff-p-title">${c.title}</div>
+          ${c.subtitle ? `<div class="ff-p-sub">${c.subtitle}</div>` : ''}
+          <div class="ff-p-place">Концерт в ${c.city} &nbsp;•&nbsp; ${c.venue}</div>
+          ${ffDate(c)}${c.tickets ? `<a class="ff-p-tickets" href="${c.tickets}" target="_blank" rel="noopener">Билеты</a>` : ''}
+        </div>
+      </div>`).join('')}` : '';
+
+  listEl.innerHTML = `
+    <div class="ff-section">
+      <div class="ff-info">
+        <div class="ff-name">${f.name}</div>
+        ${f.tag ? `<div class="ff-tag" style="margin-top:6px">${f.tag}</div>` : ''}
+        ${f.desc ? `<div class="ff-desc" style="margin-top:14px">${f.desc}</div>` : ''}
+        ${(f.url && f.slug === 'fame-booking') ? `<a class="ff-link" href="${f.url}" target="_blank" rel="noopener">Подробнее</a>` : ''}
+        <div class="ff-badge">Реклама · наши друзья</div>
+      </div>
+      ${afisha}
+    </div>`;
+}
+
+function toggleFriends(force) {
+  const panel = document.getElementById('ffPanel');
+  const open = typeof force === 'boolean' ? force : !panel.classList.contains('show');
+  panel.classList.toggle('show', open);
+  document.getElementById('ffOverlay').classList.toggle('show', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+window.toggleFriends = toggleFriends;
+renderFriends();
+
+function toggleCart() {
+  document.getElementById('cartPanel').classList.toggle('show');
+  document.getElementById('cartOverlay').classList.toggle('show');
+  if (document.getElementById('cartPanel').classList.contains('show')) document.body.style.overflow = 'hidden';
+  else document.body.style.overflow = '';
+}
+
+// === ORDER FORM ===
+const TELEGRAM_USERNAME = 'Levlevlev_k';
+
+function checkout() {
+  if (!cart.length) return;
+  const agree = document.getElementById('agreeCheckbox');
+  if (agree && !agree.checked) {
+    showToast('Подтвердите согласие на обработку персональных данных');
+    return;
+  }
+
+  document.getElementById('orderOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderForm() {
+  document.getElementById('orderOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function submitOrder() {
+  const name = document.getElementById('of_name');
+  const phone = document.getElementById('of_phone');
+  const city = document.getElementById('of_city');
+  const street = document.getElementById('of_street');
+  const house = document.getElementById('of_house');
+  const flat = document.getElementById('of_flat');
+  const index = document.getElementById('of_index');
+  const pvz = document.getElementById('of_pvz');
+
+  [name, phone, city].forEach(el => el.classList.remove('error'));
+
+  let hasError = false;
+  if (!name.value.trim()) { name.classList.add('error'); hasError = true; }
+  if (!phone.value.trim()) { phone.classList.add('error'); hasError = true; }
+  if (!city.value.trim()) { city.classList.add('error'); hasError = true; }
+
+  if (hasError) {
+    showToast('Заполните обязательные поля: ФИО, телефон, город');
+    return;
+  }
+
+  const itemsText = cart.map(i => {
+    const sz = typeof i.sizeLabel === 'number' ? i.sizeLabel + ' EU' : i.sizeLabel;
+    return `Товар: ${i.name}
+Размер: ${sz}
+Цена: ${i.price.toLocaleString('ru-RU')}Р`;
+  }).join('\n\n');
+
+  const msg =
+`Здравствуйте, я хочу сделать заказ!
+${itemsText}
+
+Мне понадобится доставка в пункт выдачи.
+ФИО: ${name.value.trim()}
+Телефон: ${phone.value.trim()}
+Город: ${city.value.trim()}
+Улица: ${street.value.trim() || '—'}
+Дом: ${house.value.trim() || '—'}
+Квартира: ${flat.value.trim() || '—'}
+Индекс: ${index.value.trim() || '—'}
+ПВЗ СДЭК: ${pvz.value.trim() || '—'}`;
+
+  const encoded = encodeURIComponent(msg);
+  const tgLink = `https://t.me/${TELEGRAM_USERNAME}?text=${encoded}`;
+
+  window.open(tgLink, '_blank');
+
+  cart = [];
+  saveCart();
+  renderCart();
+  closeOrderForm();
+  toggleCart();
+  showToast('Открываем Telegram — отправьте сообщение');
+}
+
+window.closeOrderForm = closeOrderForm;
+window.submitOrder = submitOrder;
+
+function updateBadges() {
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const cartBadge = document.getElementById('cartBadge');
+  cartBadge.textContent = cartCount;
+  cartBadge.classList.toggle('zero', cartCount === 0);
+  const favBadge = document.getElementById('favBadge');
+  favBadge.textContent = favs.length;
+  favBadge.classList.toggle('zero', favs.length === 0);
+}
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+document.getElementById('search').addEventListener('input', () => { leaveProduct(false); clearPhoto(); renderGrid(); });
+document.getElementById('sortSelect').addEventListener('change', e => {
+  currentSort = e.target.value;
+  renderGrid();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const busy = document.getElementById('cartPanel').classList.contains('show')
+      || document.getElementById('ffPanel').classList.contains('show')
+      || document.getElementById('orderOverlay').classList.contains('show');
+    closeOrderForm();
+    if (document.getElementById('cartPanel').classList.contains('show')) toggleCart();
+    if (document.getElementById('ffPanel').classList.contains('show')) toggleFriends(false);
+    if (!busy) leaveProduct(true);
+  }
+  if (!pdpOpen || !currentProduct || !hasImages(currentProduct)) return;
+  if (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowLeft') prevImg();
+  if (e.key === 'ArrowRight') nextImg();
+});
+
+const agreeCb = document.getElementById('agreeCheckbox');
+if (agreeCb) {
+  agreeCb.addEventListener('change', () => {
+    document.getElementById('checkoutBtn').disabled = !cart.length || !agreeCb.checked;
+  });
+}
+
+window.setCat = setCat;
+window.showFavorites = showFavorites;
+window.toggleCart = toggleCart;
+window.openProduct = openProduct;
+window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
+window.toggleFav = toggleFav;
+window.toggleFavCurrent = toggleFavCurrent;
+window.closeModal = closeProduct;
+window.closeProduct = closeProduct;
+window.productClick = productClick;
+window.toggleGuide = toggleGuide;
+window.selectSize = selectSize;
+window.addCurrentToCart = addCurrentToCart;
+window.changeQty = changeQty;
+window.removeItem = removeItem;
+window.checkout = checkout;
+window.scrollToCatalog = scrollToCatalog;
+window.hoverImg = hoverImg;
+window.prevImg = prevImg;
+window.nextImg = nextImg;
+window.goToImg = goToImg;
+
+// === HERO SLIDER ===
+(async function() {
+  const slider = document.getElementById('heroSlider');
+  if (!slider) return;
+
+  // Каждый раз берём один случайный товар (с фото) и строим слайды только про него
+  // В данных у товара может быть больше фото, чем реально лежит в папке,
+  // поэтому проверяем, что первые 4 картинки действительно загружаются.
+  const imgOk = src => new Promise(res => {
+    const im = new Image();
+    const t = setTimeout(() => res(false), 5000);
+    im.onload = () => { clearTimeout(t); res(true); };
+    im.onerror = () => { clearTimeout(t); res(false); };
+    im.src = src;
+  });
+  const pool = PRODUCTS.filter(p => p.images && p.images.length >= 4);
+  for (let i = pool.length - 1; i > 0; i--) {            // перемешиваем
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  let prod = null;
+  for (const p of pool) {
+    const ok = await Promise.all(p.images.slice(0, 4).map(imgOk));
+    if (ok.every(Boolean)) { prod = p; break; }
+  }
+  if (!prod) { slider.parentElement.style.display = 'none'; return; }
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+  const noColon = t => t.replace(/\s*:\s*/g, ' — ');   // никаких двойных двоеточий
+  const fallbackTitles = ['Особенности', 'Детали', 'Для вас'];
+  const priceText = (hasPriceBySize(prod) ? 'от ' : '') + getPriceLabel(prod);
+  const total = Math.min(prod.images.length, 4);
+  const texts = [];
+  for (let k = 0; k < total; k++) {
+    if (k === 0) {
+      texts.push({ title: prod.isNew ? 'Новинка' : 'Для вас', sub: noColon(prod.name) });
+      continue;
+    }
+    const spec = (prod.specs || [])[k - 1];
+    if (!spec) { texts.push({ title: 'Цена', sub: priceText }); continue; }
+    const ci = spec.indexOf(':');
+    if (ci > 0 && ci < 20) {
+      texts.push({ title: cap(spec.slice(0, ci).trim()), sub: cap(noColon(spec.slice(ci + 1).trim())) });
+    } else {
+      texts.push({ title: fallbackTitles[k - 1] || 'Детали', sub: cap(noColon(spec)) });
+    }
+  }
+  const dotsBox = slider.querySelector('.hs-dots');
+  dotsBox.insertAdjacentHTML('beforebegin', texts.map((t, k) => `
+      <div class="hs-slide" data-product="${prod.id}">
+        <img src="${esc(prod.images[k])}" alt="${esc(prod.name)}">
+        <div class="hs-caption">
+          <div class="hs-title">${esc(t.title)}</div>
+          <div class="hs-sub">${esc(t.sub)}</div>
+        </div>
+      </div>`).join(''));
+  dotsBox.innerHTML = texts.map((_, k) => `<button class="hs-dot" aria-label="Слайд ${k + 1}"></button>`).join('');
+
+  const slides = [...slider.querySelectorAll('.hs-slide')];
+  const dots = [...slider.querySelectorAll('.hs-dot')];
+  let cur = 0;
+  function go(i) {
+    cur = (i + slides.length) % slides.length;
+    slides.forEach((sl, k) => sl.classList.toggle('active', k === cur));
+    dots.forEach(d => d.classList.remove('active'));
+    void slider.offsetWidth;
+    dots[cur].classList.add('active');
+  }
+  dots.forEach((d, k) => d.addEventListener('click', () => go(k)));
+  slider.addEventListener('animationend', e => { if (e.animationName === 'hsfill') go(cur + 1); });
+  let x0 = null, swiped = false;
+  slider.addEventListener('pointerdown', e => { x0 = e.clientX; });
+  slider.addEventListener('pointerup', e => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) { swiped = true; go(cur + (dx < 0 ? 1 : -1)); }
+  });
+  // клик по любому месту слайда открывает товар (свайп не считается кликом)
+  slider.addEventListener('click', e => {
+    if (swiped) { swiped = false; return; }
+    if (e.target.closest('.hs-dots')) return;
+    const sl = e.target.closest('.hs-slide');
+    if (sl && sl.dataset.product) openProduct(+sl.dataset.product);
+  });
+  slider.addEventListener('pointercancel', () => { x0 = null; });
+  go(0);
+
+  // Растворяем края фото: считаем, где реально заканчивается картинка (object-fit:contain),
+  // и делаем плавное затухание только по тем сторонам, где есть «поля» вокруг фото.
+  function feather(img) {
+    const W = slider.clientWidth, H = slider.clientHeight;
+    const nw = img.naturalWidth, nh = img.naturalHeight;
+    if (!nw || !nh || !W || !H) return;
+    const k = Math.min(W / nw, H / nh);
+    const w = nw * k, h = nh * k;
+    const ox = (W - w) / 2, oy = (H - h) / 2;
+    const fx = ox > 0.5 ? Math.max(40, w * 0.14) : 0;
+    const fy = oy > 0.5 ? Math.max(40, h * 0.14) : 0;
+    img.style.setProperty('--ox', (ox > 0.5 ? ox + 1 : 0) + 'px');
+    img.style.setProperty('--oy', (oy > 0.5 ? oy + 1 : 0) + 'px');
+    img.style.setProperty('--fx', fx + 'px');
+    img.style.setProperty('--fy', fy + 'px');
+  }
+  const imgs = [...slider.querySelectorAll('.hs-slide img')];
+  imgs.forEach(img => {
+    img.addEventListener('load', () => feather(img));
+    if (img.complete) feather(img);
+  });
+  window.addEventListener('resize', () => imgs.forEach(feather));
+})();
+
+renderCats();
+renderFilters();
+initFilterUi();
+renderGrid();
+renderCart();
+updateBadges();
+</script>
+
+</body>
+</html>

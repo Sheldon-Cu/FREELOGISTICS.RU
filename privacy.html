@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Политика конфиденциальности — FREE LOGISTICS</title>
+<meta name="robots" content="noindex,follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg:#ffffff; --bg2:#f6f6f4; --card2:#f0efec; --tile:#ecebe7;
+    --text:#111111; --muted:#76766f; --border:#e7e6e2;
+  }
+  html { scroll-behavior:smooth; scroll-padding-top:96px; }
+  body {
+    font-family:'Jost',-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5; overflow-x:hidden;
+  }
+  a { color:inherit; }
+  ::selection { background:#111; color:#fff; }
+
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+  }
+  .top-bar {
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:20px;
+    padding:16px 32px 14px; max-width:1700px; margin:0 auto;
+  }
+  .hb-left { display:flex; align-items:center; gap:24px; justify-self:start; }
+  .hb-right { display:flex; align-items:center; gap:24px; justify-self:end; }
+  .hb-link {
+    font-size:12px; font-weight:500; color:var(--muted);
+    text-decoration:none; transition:color .2s; white-space:nowrap;
+  }
+  .hb-link:hover, .hb-link.on { color:var(--text); }
+  .logo {
+    justify-self:center; white-space:nowrap; line-height:1; text-decoration:none; color:var(--text);
+    font-family:'Barlow Condensed','Jost',sans-serif;
+    font-size:32px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  }
+
+  .wrap { max-width:1280px; margin:0 auto; padding:32px 32px 100px; }
+  .back {
+    display:inline-block; font-size:11px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted); text-decoration:none; transition:color .2s;
+  }
+  .back:hover { color:var(--text); }
+
+  .doc-head { margin:32px 0 44px; padding-bottom:32px; border-bottom:1px solid var(--border); }
+  .eyebrow { font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  h1 { font-size:46px; font-weight:600; letter-spacing:-.8px; line-height:1.05; margin-top:12px; max-width:820px; }
+  .lead { font-size:16px; color:var(--muted); margin-top:16px; max-width:640px; }
+  .meta { display:flex; gap:28px; flex-wrap:wrap; margin-top:22px; font-size:13px; color:var(--muted); }
+  .meta b { color:var(--text); font-weight:500; }
+
+  .layout { display:grid; grid-template-columns:250px minmax(0,1fr); gap:64px; align-items:start; }
+  .toc { position:sticky; top:104px; }
+  .toc-title {
+    font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+    padding:0 0 14px; border-bottom:1px solid var(--border);
+  }
+  .toc a {
+    display:flex; gap:10px; padding:11px 0; border-bottom:1px solid var(--border);
+    font-size:13px; color:var(--muted); text-decoration:none; transition:color .2s;
+  }
+  .toc a i { font-style:normal; width:18px; flex:none; color:#b5b4ae; font-variant-numeric:tabular-nums; }
+  .toc a:hover, .toc a.on { color:var(--text); }
+  .toc a.on i { color:var(--text); }
+  .toc-other { margin-top:24px; font-size:12px; color:var(--muted); line-height:1.6; }
+  .toc-other a { display:inline; padding:0; border:0; font-size:12px; color:var(--text); text-decoration:underline; text-underline-offset:2px; }
+
+  .doc { max-width:760px; }
+  section.sec { padding:0 0 40px; margin:0 0 40px; border-bottom:1px solid var(--border); }
+  section.sec:last-of-type { border-bottom:0; margin-bottom:0; }
+  h2 { font-size:24px; font-weight:600; letter-spacing:-.3px; line-height:1.2; display:flex; gap:14px; align-items:baseline; margin-bottom:16px; }
+  h2 span { font-size:13px; font-weight:500; color:var(--muted); letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+  .doc p { font-size:15px; line-height:1.65; margin:0 0 12px; color:#2b2b28; }
+  .doc ul { list-style:none; margin:4px 0 14px; }
+  .doc li { position:relative; padding:0 0 8px 20px; font-size:15px; line-height:1.6; color:#2b2b28; }
+  .doc li::before { content:''; position:absolute; left:2px; top:10px; width:5px; height:5px; background:var(--text); border-radius:50%; }
+  .doc strong { font-weight:600; color:var(--text); }
+  .doc a { text-decoration:underline; text-underline-offset:2px; }
+
+  .note { background:var(--bg2); padding:16px 20px; margin:16px 0; font-size:14px; line-height:1.6; color:#2b2b28; }
+  .note strong { display:block; font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .todo { background:var(--card2); border-bottom:1px dashed #9a9a94; padding:0 4px; }
+
+  table { width:100%; border-collapse:collapse; margin:8px 0 18px; font-size:14px; }
+  th {
+    text-align:left; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); padding:10px 14px 10px 0; border-bottom:1px solid var(--text);
+  }
+  td { padding:14px 14px 14px 0; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55; color:#2b2b28; }
+  td:first-child { font-weight:600; color:var(--text); width:24%; }
+  th:last-child, td:last-child { padding-right:0; }
+
+  .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+  .btn {
+    display:inline-block; padding:14px 24px; border-radius:2px; font-size:13px; font-weight:600; letter-spacing:.04em;
+    text-decoration:none !important; transition:background .2s, border-color .2s;
+  }
+  .btn.dark { background:var(--text); color:#fff; }
+  .btn.dark:hover { background:#2e2e2e; }
+  .btn.line { border:1px solid var(--border); color:var(--text); }
+  .btn.line:hover { border-color:var(--text); }
+
+  footer { background:#0f0f0f; color:#fff; padding:56px 32px 36px; }
+  .footer-inner { max-width:1700px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; }
+  .footer-col h4 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.16em; margin-bottom:18px; color:#fff; }
+  .footer-col p, .footer-col a { display:block; font-size:14px; color:#9a9a94; text-decoration:none; margin-bottom:10px; transition:color .2s; }
+  .footer-col a:hover { color:#fff; }
+  .footer-col .logo { color:#fff; display:block; margin-bottom:16px; justify-self:auto; font-size:32px; }
+  .footer-bottom {
+    max-width:1700px; margin:40px auto 0; padding-top:30px; border-top:1px solid #262626;
+    display:flex; justify-content:space-between; font-size:13px; color:#9a9a94; flex-wrap:wrap; gap:16px;
+  }
+
+  @media (max-width:1100px) { .hb-left .hb-link { display:none; } }
+  @media (max-width:900px) {
+    .top-bar { padding:14px 16px 12px; grid-template-columns:auto 1fr; }
+    .logo { justify-self:start; font-size:26px; }
+    .hb-left { display:none; }
+    .hb-right { gap:16px; }
+    .wrap { padding:24px 16px 70px; }
+    h1 { font-size:32px; }
+    .doc-head { margin:24px 0 28px; padding-bottom:24px; }
+    .layout { grid-template-columns:1fr; gap:28px; }
+    .toc { position:static; }
+    .footer-inner { grid-template-columns:1fr 1fr; }
+    footer { padding:44px 16px 30px; }
+    table, thead, tbody, tr, th, td { display:block; }
+    thead { display:none; }
+    tr { padding:12px 0; border-bottom:1px solid var(--border); }
+    td { border:0; padding:3px 0; width:100% !important; }
+  }
+  @media (max-width:480px) { .footer-inner { grid-template-columns:1fr; } h2 { font-size:21px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="top-bar">
+    <div class="hb-left">
+      <a class="hb-link on" href="privacy.html">Политика конфиденциальности</a>
+      <a class="hb-link" href="consent.html">Согласие на обработку данных</a>
+    </div>
+    <a class="logo" href="index.html">FREE LOGISTICS</a>
+    <div class="hb-right"><a class="hb-link" href="index.html">В магазин</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <a class="back" href="index.html">← Все товары</a>
+  <div class="doc-head">
+    <div class="eyebrow">Документы</div>
+    <h1>Политика конфиденциальности</h1>
+    <p class="lead">Какие данные мы получаем при заказе, зачем они нужны, кому передаём и как вы можете ими управлять.</p>
+    <div class="meta"><span>Редакция от <b>24 октября 2026</b></span><span>Вопросы: <b>info@fl-logistics.ru</b></span></div>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Содержание">
+      <div class="toc-title">Содержание</div>
+      <a href="#s1"><i>1</i>Общие положения</a><a href="#s2"><i>2</i>Какие данные мы обрабатываем</a><a href="#s3"><i>3</i>Как данные попадают к нам</a><a href="#s4"><i>4</i>Цели и основания обработки</a><a href="#s5"><i>5</i>Передача третьим лицам</a><a href="#s6"><i>6</i>Сроки хранения</a><a href="#s7"><i>7</i>Ваши права</a><a href="#s8"><i>8</i>Защита данных</a><a href="#s9"><i>9</i>Файлы в браузере и cookie</a><a href="#s10"><i>10</i>Изменения политики</a>
+      <div class="toc-other">Смотрите также: <a href="consent.html">Согласие на обработку данных</a></div>
+    </nav>
+    <article class="doc"><section class="sec" id="s1"><h2><span>01</span>Общие положения</h2>
+<p>Эта политика объясняет, какие персональные данные Кайгородцев Лев Олегович, самозанятый, работающий под обозначением FREE LOGISTICS (далее — «Оператор»), получает при работе сайта и оформлении заказа, зачем они нужны, кому могут передаваться и как вы можете ими управлять.</p>
+<p>Политика составлена в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных» и применяется ко всем данным, которые вы оставляете на сайте или сообщаете нам в мессенджерах при заказе.</p>
+<div class="note"><strong>Оператор</strong>Кайгородцев Лев Олегович, самозанятый (плательщик налога на профессиональный доход), ИНН 434586227278.<br>Адрес: г. Киров, Кировская область, ТЦ «Кристал»<br>Связь: <a href="mailto:info@fl-logistics.ru">info@fl-logistics.ru</a> · <a href="https://t.me/freelogistics" target="_blank" rel="noopener">Telegram</a></div>
+<p>Просмотр каталога не требует передачи персональных данных. Данные нужны только для оформления заказа — и только после вашего отдельного <a href="consent.html">согласия на их обработку</a>.</p>
+</section><section class="sec" id="s2"><h2><span>02</span>Какие данные мы обрабатываем</h2>
+<table>
+<thead><tr><th>Источник</th><th>Что именно</th><th>Зачем</th></tr></thead>
+<tbody>
+<tr><td>Форма заказа</td><td>ФИО, телефон, город, улица, дом, квартира, индекс, адрес пункта выдачи СДЭК. Состав заказа: товар, размер, цена.</td><td>Оформить заказ, согласовать детали, доставить.</td></tr>
+<tr><td>Переписка</td><td>Имя профиля и username в Telegram или ВКонтакте, текст сообщений, сведения, которые вы сообщаете сами.</td><td>Связаться с вами, ответить на вопросы, обработать возврат или претензию.</td></tr>
+<tr><td>Браузер</td><td>Корзина и избранное. Хранятся только на вашем устройстве и к нам не передаются.</td><td>Сохранить выбор между визитами.</td></tr>
+<tr><td>Технические данные</td><td>IP-адрес, тип браузера, время обращения. Фиксируются хостингом сайта и сервисом шрифтов Google Fonts при загрузке страницы.</td><td>Работа и безопасность сайта.</td></tr>
+</tbody></table>
+<p>Мы не запрашиваем на сайте данные банковских карт, паспорта и специальные категории данных (здоровье, убеждения, биометрию).</p>
+</section><section class="sec" id="s3"><h2><span>03</span>Как данные попадают к нам</h2>
+<p>Форма заказа на сайте <strong>не отправляет данные на сервер</strong>. Когда вы нажимаете «Отправить в Telegram», открывается Telegram с готовым текстом заказа. К нам эти данные попадают только после того, как вы сами отправите это сообщение.</p>
+<p>До этого момента введённые данные остаются в вашем браузере. После отправки заказа корзина на сайте очищается.</p>
+<div class="note"><strong>Важно</strong>Дальнейшая обработка сообщения в Telegram регулируется правилами самого мессенджера. Если вы не хотите использовать Telegram, напишите нам на почту или во ВКонтакте.</div>
+</section><section class="sec" id="s4"><h2><span>04</span>Цели и основания обработки</h2>
+<ul>
+<li>оформление, подтверждение и выполнение заказа, организация доставки;</li>
+<li>связь с вами по заказу: уточнение размера, сроков, адреса;</li>
+<li>рассмотрение обращений, возвратов и претензий;</li>
+<li>соблюдение требований законодательства, в том числе налогового;</li>
+<li>обеспечение работы и безопасности сайта.</li>
+</ul>
+<p>Основания: ваше согласие (ст. 6 ч. 1 п. 1 152-ФЗ), исполнение договора, стороной которого вы являетесь (п. 5), и требования закона (п. 2). Рекламных рассылок мы не делаем.</p>
+</section><section class="sec" id="s5"><h2><span>05</span>Передача третьим лицам</h2>
+<p>Мы передаём данные только в объёме, который нужен для выполнения вашего заказа:</p>
+<ul>
+<li><strong>СДЭК</strong> — только ФИО, телефон и адрес или пункт выдачи, чтобы доставить заказ;</li>
+<li><strong>мессенджерам</strong> (Telegram, ВКонтакте) как каналам связи: их серверы могут находиться за пределами России;</li>
+<li><strong>государственным органам</strong> — по их мотивированному запросу в случаях, предусмотренных законом.</li>
+</ul>
+<p>Мы не продаём персональные данные и не передаём их третьим лицам для рекламы.</p>
+</section><section class="sec" id="s6"><h2><span>06</span>Сроки хранения</h2>
+<p>Оператор не ведёт баз данных клиентов и не копирует ваши данные в другие системы. Сведения остаются только в переписке в мессенджере и хранятся до исполнения заказа и окончания срока на возврат и претензии. После этого переписка с данными заказа удаляется — или раньше, по вашему запросу.</p>
+<p>Если закон требует хранить отдельные сведения (например, данные налогового учёта), они хранятся в этом объёме.</p>
+</section><section class="sec" id="s7"><h2><span>07</span>Ваши права</h2>
+<ul>
+<li>узнать, обрабатываются ли ваши данные, и получить их копию;</li>
+<li>потребовать уточнить, заблокировать или удалить данные, если они неточны или не нужны для заявленной цели;</li>
+<li>отозвать согласие на обработку в любой момент;</li>
+<li>обжаловать действия Оператора в Роскомнадзоре или в суде.</li>
+</ul>
+<p>Чтобы воспользоваться правами, напишите на <a href="mailto:info@fl-logistics.ru">info@fl-logistics.ru</a> и укажите ФИО и телефон, которые вы использовали при заказе. На запрос мы ответим в течение 10 рабочих дней. Обработку после отзыва согласия мы прекращаем в срок, установленный законом, — не более 30 дней.</p>
+</section><section class="sec" id="s8"><h2><span>08</span>Защита данных</h2>
+<p>Доступ к данным ограничен: их получает только сам Оператор, без менеджеров и посредников. Данные заказа не хранятся на самом сайте, а передаются нам только тогда, когда вы сами отправляете сообщение.</p>
+<p>Ни один способ передачи данных в интернете не даёт абсолютной гарантии, поэтому не отправляйте нам лишнего: пароли, коды из СМС и данные карт нам не нужны.</p>
+</section><section class="sec" id="s9"><h2><span>09</span>Файлы в браузере и cookie</h2>
+<p>Сам сайт не устанавливает cookie и не использует системы веб-аналитики и рекламные пиксели. Корзина и избранное хранятся в локальном хранилище вашего браузера (localStorage). Чтобы удалить их, уберите товары из корзины и избранного или очистите данные сайта в настройках браузера.</p>
+<p>При загрузке страницы браузер получает шрифты с серверов Google Fonts, поэтому Google видит ваш IP-адрес и данные браузера. Эти запросы подчиняются политике конфиденциальности Google.</p>
+</section><section class="sec" id="s10"><h2><span>10</span>Изменения политики</h2>
+<p>Мы можем обновлять эту политику. Актуальная редакция всегда доступна на этой странице, дата редакции указана вверху. Существенные изменения мы будем отмечать на сайте.</p>
+<p>Вопросы по обработке данных: <a href="mailto:info@fl-logistics.ru">info@fl-logistics.ru</a>.</p>
+<div class="actions"><a class="btn dark" href="consent.html">Согласие на обработку данных</a><a class="btn line" href="index.html">Вернуться в магазин</a></div>
+</section></article>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-col">
+      <a class="logo" href="index.html">FREE LOGISTICS</a>
+      <p>FREE LOGISTICS — международная логистика. Привозим оригинальные вещи из США, Китая, Японии, Европы и Кореи. Более 10 000 заказов, 120 городов, 5 лет на рынке.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Каталог</h4>
+      <a href="index.html">Все товары</a>
+    </div>
+    <div class="footer-col">
+      <h4>Документы</h4>
+      <a href="privacy.html">Политика конфиденциальности</a>
+      <a href="consent.html">Согласие на обработку данных</a>
+    </div>
+    <div class="footer-col">
+      <h4>Контакты</h4>
+      <a href="https://t.me/freelogistics" target="_blank" rel="noopener">Telegram</a>
+      <a href="https://vk.ru/freelogistics1" target="_blank" rel="noopener">ВКонтакте</a>
+      <a href="mailto:info@fl-logistics.ru">info@fl-logistics.ru</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 FREE LOGISTICS. Все права защищены.</div>
+    <div>Работаем через Белый ввоз · Poizon · Taobao · 1688</div>
+  </div>
+</footer>
+<script>
+  (function(){
+    var links = [].slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+    var secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+    function onScroll(){
+      var y = window.scrollY + 140, cur = 0;
+      secs.forEach(function(s,i){ if (s && s.offsetTop <= y) cur = i; });
+      links.forEach(function(a,i){ a.classList.toggle('on', i === cur); });
+    }
+    window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+  })();
+</script>
+</body>
+</html>
